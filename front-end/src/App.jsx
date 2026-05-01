@@ -8,6 +8,12 @@ import WorkerDashboard from "./pages/WorkerDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import Services from "./pages/Services";
+import FindWorkers from "./pages/FindWorkers";
+import WorkerProfile from "./pages/WorkerProfile";
+import Profile from "./pages/Profile";
+import Orders from "./pages/Orders";
 
 function App() {
   return (
@@ -54,6 +60,9 @@ function App() {
           }
         />
 
+        <Route path="/workers" element={<FindWorkers />} />
+        <Route path="/workers/:serviceId" element={<FindWorkers />} />
+
         <Route
           path="/admin"
           element={
@@ -62,7 +71,12 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/services" element={<Services />} />
+        <Route path="/worker/:id" element={<WorkerProfile />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/orders" element={<Orders />} />
       </Routes>
+      <Footer />
     </BrowserRouter>
   );
 }
