@@ -6,94 +6,163 @@ export default function Navbar() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
+  // Get user from localStorage (synchronously to avoid effect issues)
+  const userData = localStorage.getItem("user");
+  let user = null;
+  if (userData) {
+    try {
+      user = JSON.parse(userData);
+    } catch (e) {
+      console.error("Error parsing user data:", e);
+    }
+  }
+
   const navLinkStyle = (path) =>
     `px-5 py-2 rounded-xl text-sm font-medium transition ${
       location.pathname === path
-        ? "bg-[#1E293B]/60 text-white"
-        : "text-[#B2C0D7] hover:text-white hover:bg-[#384B6B]"
+        ? "bg-[#5875A7] text-[#EEF1F6]"
+        : "text-[#B2C0D7] hover:text-[#EEF1F6] hover:bg-[#486089]"
     }`;
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
+  if (!user) {
+    return (
+      <div className="w-full bg-gradient-to-r from-[#28364D] to-[#384B6B] border-b border-[#5875A7] px-6 py-4 flex items-center justify-between sticky top-0 z-50 shadow-lg">
+        <div
+          onClick={() => navigate("/")}
+          className="flex items-center gap-2 cursor-pointer group"
+        >
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#7A3FE0] to-[#5875A7] flex items-center justify-center text-white font-bold text-lg group-hover:shadow-lg transition">
+            K
+          </div>
+          <span className="text-[#EEF1F6] font-bold text-xl">Karigo</span>
+        </div>
+        <div className="flex gap-2">
+          <Link
+            to="/login"
+            className="px-4 py-2 text-[#B2C0D7] hover:text-[#EEF1F6]"
+          >
+            Login
+          </Link>
+          <Link
+            to="/register"
+            className="px-4 py-2 bg-[#7A3FE0] text-[#EEF1F6] rounded-lg hover:shadow-lg"
+          >
+            Register
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div
-      className="w-full 
-                    bg-gradient-to-r from-[#1E293B] to-[#0F172A]
-                    border-b border-[#2A3A55]
-                    px-6 py-3 
-                    flex items-center justify-between"
-    >
-      {/* LEFT */}
+    <div className="w-full bg-gradient-to-r from-[#28364D] to-[#384B6B] border-b border-[#5875A7] px-6 py-4 flex items-center justify-between sticky top-0 z-50 shadow-lg">
+      {/* LEFT - LOGO */}
       <div
         onClick={() => navigate("/")}
-        className="flex items-center gap-2 cursor-pointer"
+        className="flex items-center gap-2 cursor-pointer group"
       >
-        <div
-          className="w-9 h-9 rounded-lg 
-                        bg-gradient-to-br from-[#3B82F6] to-[#2563EB] 
-                        flex items-center justify-center text-white font-bold"
-        >
+        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#7A3FE0] to-[#5875A7] flex items-center justify-center text-white font-bold text-lg group-hover:shadow-lg transition">
           K
         </div>
-
-        <span className="text-[#EEF1F6] font-semibold text-lg">Karigo</span>
+        <span className="text-[#EEF1F6] font-bold text-xl">Karigo</span>
       </div>
 
-      {/* CENTER LINKS */}
-      <div className="flex items-center gap-2">
+      {/* CENTER - NAVIGATION */}
+      <div className="hidden md:flex items-center gap-1">
         <Link to="/" className={navLinkStyle("/")}>
           Home
         </Link>
-
         <Link to="/services" className={navLinkStyle("/services")}>
           Services
         </Link>
-
         <Link to="/workers" className={navLinkStyle("/workers")}>
           Find Workers
         </Link>
-
-        <Link to="/bookings" className={navLinkStyle("/bookings")}>
-          Bookings
-        </Link>
+        {user.role === "user" && (
+          <Link to="/bookings" className={navLinkStyle("/bookings")}>
+            My Bookings
+          </Link>
+        )}
+        {user.role === "worker" && (
+          <Link to="/worker" className={navLinkStyle("/worker")}>
+            Dashboard
+          </Link>
+        )}
       </div>
 
-      {/* RIGHT PROFILE */}
+      {/* RIGHT - PROFILE DROPDOWN */}
       <div className="relative">
         <button
           onClick={() => setOpen(!open)}
-          className="flex items-center gap-2 px-5 py-2 rounded-full
-                     bg-gradient-to-r from-[#3B82F6] to-[#2563EB]
-                     text-white text-sm font-medium
-                     shadow-md hover:shadow-lg
-                     transition"
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[#7A3FE0] to-[#5875A7] text-[#EEF1F6] text-sm font-medium hover:shadow-lg transition"
         >
           <span>👤</span>
-          Profile
-          <span className="text-xs">▾</span>
+          {user.name?.split(" ")[0] || "Account"}
+          <span className={`text-xs transition ${open ? "rotate-180" : ""}`}>
+            ▾
+          </span>
         </button>
 
         {open && (
-          <div
-            className="absolute right-0 mt-3 w-44 rounded-xl 
-                          bg-[#1E293B] border border-[#2A3A55]
-                          shadow-xl overflow-hidden"
-          >
-            <button
-              onClick={() => navigate("/profile")}
-              className="block w-full text-left px-4 py-2 hover:bg-[#5875A7]"
-            >
-              My Profile
-            </button>
+          <div className="absolute right-0 mt-2 w-56 rounded-xl bg-[#384B6B] border border-[#5875A7] shadow-2xl overflow-hidden">
+            {/* User Info */}
+            <div className="px-4 py-3 border-b border-[#5875A7] bg-[#486089]">
+              <p className="text-[#EEF1F6] font-semibold">{user.name}</p>
+              <p className="text-[#B2C0D7] text-xs">{user.email}</p>
+              <p className="text-[#7A3FE0] text-xs font-semibold mt-1 capitalize">
+                {user.role === "user" ? "Customer" : "Service Provider"}
+              </p>
+            </div>
 
-            <button
-              onClick={() => navigate("/orders")}
-              className="block w-full text-left px-4 py-2 hover:bg-[#5875A7]"
-            >
-              My Orders
-            </button>
+            {/* Menu Items */}
+            <div className="py-2">
+              <button
+                onClick={() => {
+                  navigate("/profile");
+                  setOpen(false);
+                }}
+                className="block w-full text-left px-4 py-2 text-[#EEF1F6] hover:bg-[#5875A7] transition"
+              >
+                👤 My Profile
+              </button>
 
-            <button className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/20">
-              Logout
-            </button>
+              {user.role === "user" && (
+                <button
+                  onClick={() => {
+                    navigate("/orders");
+                    setOpen(false);
+                  }}
+                  className="block w-full text-left px-4 py-2 text-[#EEF1F6] hover:bg-[#5875A7] transition"
+                >
+                  📦 My Orders
+                </button>
+              )}
+
+              {user.role === "worker" && (
+                <button
+                  onClick={() => {
+                    navigate("/worker");
+                    setOpen(false);
+                  }}
+                  className="block w-full text-left px-4 py-2 text-[#EEF1F6] hover:bg-[#5875A7] transition"
+                >
+                  📊 Dashboard
+                </button>
+              )}
+
+              <button
+                onClick={handleLogout}
+                className="block w-full text-left px-4 py-2 text-red-400 hover:bg-red-500/20 transition border-t border-[#5875A7] mt-2"
+              >
+                🚪 Logout
+              </button>
+            </div>
           </div>
         )}
       </div>
