@@ -31,7 +31,11 @@ export default function Login() {
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
-      navigate("/");
+      const role = res.data.user.role;
+
+      if (role === "admin") navigate("/admin");
+      else if (role === "worker") navigate("/worker");
+      else navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
     } finally {

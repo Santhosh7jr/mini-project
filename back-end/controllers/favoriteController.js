@@ -1,12 +1,13 @@
 import pool from "../config/db.js";
 
 export const addFavorite = async (req, res) => {
-  const { user_id, worker_id } = req.body;
+  const user_id = req.user.id;
+const { worker_id } = req.body;
 
   try {
-    if (!user_id || !worker_id) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
+    if (!worker_id) {
+  return res.status(400).json({ message: "Missing required fields" });
+}
 
     const result = await pool.query(
       `INSERT INTO favorites (user_id, worker_id) 
@@ -24,7 +25,8 @@ export const addFavorite = async (req, res) => {
 };
 
 export const removeFavorite = async (req, res) => {
-  const { user_id, worker_id } = req.body;
+  const user_id = req.user.id;
+const { worker_id } = req.body;
 
   try {
     await pool.query(
@@ -40,7 +42,7 @@ export const removeFavorite = async (req, res) => {
 };
 
 export const getFavorites = async (req, res) => {
-  const { userId } = req.params;
+  const userId = req.user.id;
 
   try {
     const result = await pool.query(
@@ -62,7 +64,8 @@ export const getFavorites = async (req, res) => {
 };
 
 export const isFavorite = async (req, res) => {
-  const { userId, workerId } = req.params;
+  const userId = req.user.id;
+const { workerId } = req.params;
 
   try {
     const result = await pool.query(

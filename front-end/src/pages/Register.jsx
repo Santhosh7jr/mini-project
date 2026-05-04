@@ -131,8 +131,9 @@ export default function Register() {
             {/* Role Selection */}
             <div>
               <label className="block text-[#B2C0D7] text-sm font-medium mb-2">
-                I am a
+                Account Type
               </label>
+
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -145,6 +146,7 @@ export default function Register() {
                   />
                   <span className="text-[#B2C0D7]">Customer</span>
                 </label>
+
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="radio"
@@ -157,6 +159,10 @@ export default function Register() {
                   <span className="text-[#B2C0D7]">Service Provider</span>
                 </label>
               </div>
+
+              <p className="text-xs text-[#B2C0D7] mt-2">
+                Admin accounts are managed internally
+              </p>
             </div>
 
             {/* Submit Button */}

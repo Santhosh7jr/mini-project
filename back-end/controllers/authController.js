@@ -6,6 +6,12 @@ export const register = async (req, res) => {
   const { name, email, password, phone, role } = req.body;
 
   try {
+    if (role === "admin") {
+      return res.status(403).json({
+        message: "Admin registration is not allowed",
+      });
+    }
+
     // Validate required fields
     if (!name || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
@@ -38,8 +44,29 @@ export const register = async (req, res) => {
 };
 
 export const login = async (req, res) => {
+  const isAdminLogin = (email, password) => {
+    return (
+      email === process.env.ADMIN_EMAIL &&
+      password === process.env.ADMIN_PASSWORD
+    );
+  };
+
   try {
     const { email, password } = req.body;
+
+    // 🔥 ADMIN LOGIN
+    if (isAdminLogin(email, password)) {
+      const adminUser = {
+        id: 0,
+        name: "Admin",
+        email: process.env.ADMIN_EMAIL,
+        role: "admin",
+      };
+
+      const token = generateToken(adminUser.id, adminUser.role);
+
+      return res.json({ token, user: adminUser });
+    }
 
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password required" });
@@ -92,6 +119,28 @@ export const getMe = async (req, res) => {
     }
 
     res.json(result.rows[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const updateProfile = async (req, res) => {
+  try {
+    const { name, phone } = req.body;
+
+    const result = await pool.query(
+      `UPDATE users 
+       SET name = COALESCE($1, name),
+           phone = COALESCE($2, phone),
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $3
+       RETURNING id, name, email, phone, role`,
+      [name, phone, req.user.id]
+    );
+
+    res.json(result.rows[0]);
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });

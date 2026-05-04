@@ -1,10 +1,12 @@
 import pool from "../config/db.js";
 
 export const createReview = async (req, res) => {
-  const { user_id, worker_id, booking_id, rating, comment } = req.body;
+  const user_id = req.user.id;
+
+  const { worker_id, booking_id, rating, comment } = req.body;
 
   try {
-    if (!user_id || !worker_id || !rating) {
+    if (!worker_id || !rating) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -12,6 +14,17 @@ export const createReview = async (req, res) => {
       return res
         .status(400)
         .json({ message: "Rating must be between 1 and 5" });
+    }
+
+    const existing = await pool.query(
+      `SELECT * FROM reviews WHERE user_id=$1 AND booking_id=$2`,
+      [user_id, booking_id],
+    );
+
+    if (existing.rows.length > 0) {
+      return res
+        .status(400)
+        .json({ message: "You already reviewed this booking" });
     }
 
     const result = await pool.query(
@@ -85,6 +98,10 @@ export const deleteReview = async (req, res) => {
 
     if (review.rows.length === 0) {
       return res.status(404).json({ message: "Review not found" });
+    }
+
+    if (review.rows[0].user_id !== req.user.id) {
+      return res.status(403).json({ message: "Unauthorized" });
     }
 
     await pool.query("DELETE FROM reviews WHERE id = $1", [reviewId]);

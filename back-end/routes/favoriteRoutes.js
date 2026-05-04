@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.post("/", verifyToken, addFavorite);
 router.delete("/", verifyToken, removeFavorite);
-router.get("/user/:userId", getFavorites);
-router.get("/check/:userId/:workerId", isFavorite);
+router.get("/my", verifyToken, getFavorites);
+router.get("/check/:workerId", verifyToken, isFavorite);
 
 export default router;

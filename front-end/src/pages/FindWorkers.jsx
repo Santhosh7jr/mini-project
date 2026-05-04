@@ -1,6 +1,19 @@
 import { useEffect, useState } from "react";
 import API from "../api/axios";
 import { useParams, useNavigate } from "react-router-dom";
+import worker1 from "../assets/workers/worker1.svg";
+import worker2 from "../assets/workers/worker2.svg";
+import worker3 from "../assets/workers/worker3.svg";
+import worker4 from "../assets/workers/worker4.svg";
+import worker5 from "../assets/workers/worker5.svg";
+
+const workerAvatars = {
+  "worker1.svg": worker1,
+  "worker2.svg": worker2,
+  "worker3.svg": worker3,
+  "worker4.svg": worker4,
+  "worker5.svg": worker5,
+};
 
 export default function FindWorkers() {
   const [workers, setWorkers] = useState([]);
@@ -84,15 +97,15 @@ export default function FindWorkers() {
       if (favorites.includes(workerId)) {
         await API.delete("/favorites", {
           headers: { Authorization: `Bearer ${token}` },
-          data: { user_id: user.id, worker_id: workerId },
+          data: { worker_id: workerId },
         });
         setFavorites(favorites.filter((id) => id !== workerId));
       } else {
-        await API.post(
-          "/favorites",
-          { user_id: user.id, worker_id: workerId },
-          { headers: { Authorization: `Bearer ${token}` } },
-        );
+        await API.post("/bookings", {
+          worker_id: workerId,
+          service_id: serviceId,
+          location: "Default Location",
+        });
         setFavorites([...favorites, workerId]);
       }
     } catch (err) {
@@ -176,9 +189,12 @@ export default function FindWorkers() {
                 className="bg-[#384B6B] border border-[#5875A7] rounded-2xl overflow-hidden hover:shadow-lg transition"
               >
                 {/* Image */}
-                <div className="relative">
+                <div className="relative bg-[#486089]">
                   <img
-                    src={worker.image || "https://via.placeholder.com/300"}
+                    src={
+                      workerAvatars[worker.image?.split("/").pop()] ||
+                      worker.image
+                    }
                     alt={worker.name}
                     className="w-full h-48 object-cover"
                   />

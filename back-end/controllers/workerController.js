@@ -1,21 +1,15 @@
 import pool from "../config/db.js";
 
 export const createWorkerProfile = async (req, res) => {
-  const {
-    user_id,
-    service_id,
-    image,
-    price,
-    location,
-    description,
-    experience,
-  } = req.body;
+  const user_id = req.user.id;
+
+  const { service_id, image, price, location, description, experience } =
+    req.body;
 
   try {
-    if (!user_id || !service_id || !price) {
+    if (!service_id || !price) {
       return res.status(400).json({ message: "Missing required fields" });
     }
-
     // Check if worker profile already exists
     const existing = await pool.query(
       "SELECT * FROM workers WHERE user_id = $1",
@@ -83,6 +77,20 @@ export const updateWorkerProfile = async (req, res) => {
   } = req.body;
 
   try {
+    const existing = await pool.query(
+      "SELECT user_id FROM workers WHERE id = $1",
+      [workerId],
+    );
+
+    if (existing.rows.length === 0) {
+      return res.status(404).json({ message: "Worker not found" });
+    }
+
+    // 🔥 NEW CHECK
+    if (existing.rows[0].user_id !== req.user.id) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
     const result = await pool.query(
       `UPDATE workers 
        SET image = COALESCE($1, image), 
@@ -180,6 +188,20 @@ export const deleteWorker = async (req, res) => {
   const { workerId } = req.params;
 
   try {
+    const existing = await pool.query(
+      "SELECT user_id FROM workers WHERE id = $1",
+      [workerId],
+    );
+
+    if (existing.rows.length === 0) {
+      return res.status(404).json({ message: "Worker not found" });
+    }
+
+    // 🔥 ONLY owner or admin
+    if (existing.rows[0].user_id !== req.user.id && req.user.role !== "admin") {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
     const result = await pool.query(
       `DELETE FROM workers WHERE id = $1 RETURNING id`,
       [workerId],

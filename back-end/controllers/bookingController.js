@@ -1,8 +1,8 @@
 import pool from "../config/db.js";
 
 export const createBooking = async (req, res) => {
+  const user_id = req.user.id;
   const {
-    user_id,
     worker_id,
     service_id,
     booking_date,
@@ -13,7 +13,7 @@ export const createBooking = async (req, res) => {
   } = req.body;
 
   try {
-    if (!user_id || !worker_id || !service_id) {
+    if (!worker_id || !service_id) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -41,7 +41,7 @@ export const createBooking = async (req, res) => {
 };
 
 export const getUserBookings = async (req, res) => {
-  const { userId } = req.params;
+  const userId = req.params.userId;
 
   try {
     const result = await pool.query(
@@ -58,8 +58,10 @@ export const getUserBookings = async (req, res) => {
       LEFT JOIN services s ON b.service_id = s.id
       WHERE b.user_id = $1
       ORDER BY b.created_at DESC`,
-      [Number(userId)],
+      [userId],
     );
+
+    console.log("User bookings found:", result.rows.length);
 
     res.json(result.rows);
   } catch (error) {
@@ -69,9 +71,18 @@ export const getUserBookings = async (req, res) => {
 };
 
 export const getWorkerBookings = async (req, res) => {
-  const { workerId } = req.params;
-
   try {
+    const worker = await pool.query(
+      "SELECT id FROM workers WHERE user_id = $1",
+      [req.user.id],
+    );
+
+    if (worker.rows.length === 0) {
+      return res.status(404).json({ message: "Worker profile not found" });
+    }
+
+    const workerId = worker.rows[0].id;
+
     const result = await pool.query(
       `SELECT 
         b.*,
@@ -83,7 +94,7 @@ export const getWorkerBookings = async (req, res) => {
       LEFT JOIN services s ON b.service_id = s.id
       WHERE b.worker_id = $1
       ORDER BY b.created_at DESC`,
-      [Number(workerId)],
+      [workerId],
     );
 
     res.json(result.rows);
@@ -108,6 +119,31 @@ export const updateBookingStatus = async (req, res) => {
 
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
+    }
+
+    // Get workerId for current user
+    const worker = await pool.query(
+      "SELECT id FROM workers WHERE user_id = $1",
+      [req.user.id],
+    );
+
+    if (worker.rows.length === 0) {
+      return res.status(403).json({ message: "Not a worker" });
+    }
+
+    const workerId = worker.rows[0].id;
+
+    // Check ownership
+    const booking = await pool.query(
+      "SELECT worker_id FROM bookings WHERE id = $1",
+      [bookingId],
+    );
+
+    if (
+      booking.rows.length === 0 ||
+      String(booking.rows[0].worker_id) !== String(workerId)
+    ) {
+      return res.status(403).json({ message: "Unauthorized" });
     }
 
     const result = await pool.query(
@@ -156,7 +192,17 @@ export const getBookingDetails = async (req, res) => {
       return res.status(404).json({ message: "Booking not found" });
     }
 
-    res.json(result.rows[0]);
+    const booking = result.rows[0];
+
+    // 🔥 Only allow owner or worker
+    if (
+      String(booking.user_id) !== String(req.user.id) &&
+      String(booking.worker_id) !== String(req.user.id)
+    ) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    res.json(booking);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });

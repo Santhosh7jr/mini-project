@@ -4,35 +4,75 @@ import { useNavigate } from "react-router-dom";
 
 export default function Profile() {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({});
+  const [editing, setEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSave = () => {
-    localStorage.setItem("user", JSON.stringify(formData));
-    setUser(formData);
-    setEditing(false);
+  const handleSave = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await API.put(
+        "/auth/update",
+        {
+          name: formData.name,
+          phone: formData.phone,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      // update UI
+      setUser(res.data);
+      setEditing(false);
+
+      // update localStorage (VERY IMPORTANT)
+      const updatedUser = {
+        ...JSON.parse(localStorage.getItem("user")),
+        ...res.data,
+      };
+
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+    } catch (err) {
+      console.log(err);
+      alert("Update failed");
+    }
   };
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await API.get("/auth/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUser(res.data);
-        setFormData(res.data);
+        const localUser = localStorage.getItem("user");
+
+        if (!token || !localUser) {
+          setLoading(false);
+          return;
+        }
+
+        try {
+          const res = await API.get("/auth/me", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          setUser(res.data);
+          setFormData(res.data);
+        } catch {
+          const fallback = JSON.parse(localUser);
+          setUser(fallback);
+          setFormData(fallback);
+        }
+
         setLoading(false);
-      } catch {
-        setError("Failed to load profile");
+      } catch (err) {
+        console.log(err);
         setLoading(false);
       }
     };
@@ -42,143 +82,153 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="bg-[#28364D] min-h-screen flex items-center justify-center">
-        <div className="text-[#EEF1F6] text-lg">Loading profile...</div>
+      <div className="bg-[#28364D] min-h-screen flex items-center justify-center text-white">
+        Loading...
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="bg-[#28364D] min-h-screen flex items-center justify-center">
-        <div className="text-[#EEF1F6]">Please log in to view your profile</div>
+      <div className="bg-[#28364D] min-h-screen flex items-center justify-center text-white">
+        Please login
       </div>
     );
   }
 
   return (
-    <div className="bg-[#28364D] min-h-screen px-6 py-16">
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#EEF1F6]">My Profile</h1>
-          <p className="text-[#B2C0D7] mt-2">Manage your account information</p>
-        </div>
-
-        {error && (
-          <div className="bg-red-500/20 border border-red-500 text-red-300 px-4 py-3 rounded-lg mb-6">
-            {error}
+    <div className="bg-[#28364D] min-h-screen px-6 py-12">
+      <div className="max-w-5xl mx-auto space-y-8">
+        {/* 🔥 PROFILE HEADER */}
+        <div className="bg-gradient-to-r from-[#384B6B] to-[#486089] rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6">
+          {/* Avatar */}
+          <div className="w-24 h-24 rounded-full bg-[#7A3FE0] flex items-center justify-center text-white text-3xl font-bold shadow-lg">
+            {user.name?.charAt(0).toUpperCase()}
           </div>
-        )}
 
-        <div className="bg-[#384B6B] rounded-2xl border border-[#5875A7] p-8">
-          <div className="flex justify-center mb-8">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#7A3FE0] to-[#5875A7] flex items-center justify-center text-[#EEF1F6] text-4xl font-bold shadow-lg">
-              {user.name?.charAt(0).toUpperCase() || "U"}
+          {/* Info */}
+          <div className="flex-1 text-center md:text-left">
+            <h2 className="text-2xl font-semibold text-[#EEF1F6]">
+              {user.name}
+            </h2>
+            <p className="text-[#B2C0D7]">{user.email}</p>
+
+            <div className="mt-2 text-sm text-[#B2C0D7]">
+              {user.role === "user" ? "🛍️ Customer" : "🛠️ Worker"}
             </div>
           </div>
 
-          <div className="space-y-6">
+          {/* Action */}
+          <button
+            onClick={() => setEditing(!editing)}
+            className="bg-[#7A3FE0] px-5 py-2 rounded-lg text-white hover:bg-[#9D5BFF] transition"
+          >
+            {editing ? "Cancel" : "Edit"}
+          </button>
+        </div>
+
+        {/* 🔥 ACCOUNT DETAILS */}
+        <div className="bg-[#384B6B] rounded-2xl p-6 border border-[#5875A7]">
+          <h3 className="text-lg font-semibold text-white mb-6">
+            Account Details
+          </h3>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Name */}
             <div>
-              <label className="block text-[#B2C0D7] text-sm font-medium mb-2">
-                Full Name
-              </label>
+              <label className="text-[#B2C0D7] text-sm">Full Name</label>
               {editing ? (
                 <input
-                  type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full bg-[#28364D] border border-[#5875A7] text-[#EEF1F6] px-4 py-2 rounded-lg focus:outline-none focus:border-[#7A3FE0]"
+                  className="w-full mt-1 bg-[#28364D] border border-[#5875A7] p-2 rounded-lg text-white"
                 />
               ) : (
-                <p className="text-[#EEF1F6] text-lg">{user.name}</p>
+                <p className="text-white mt-1">{user.name}</p>
               )}
             </div>
 
+            {/* Phone */}
             <div>
-              <label className="block text-[#B2C0D7] text-sm font-medium mb-2">
-                Email
-              </label>
-              <p className="text-[#EEF1F6] text-lg">{user.email}</p>
-              <p className="text-[#B2C0D7] text-xs mt-1">
-                Email cannot be changed
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-[#B2C0D7] text-sm font-medium mb-2">
-                Phone Number
-              </label>
+              <label className="text-[#B2C0D7] text-sm">Phone</label>
               {editing ? (
                 <input
-                  type="tel"
                   name="phone"
                   value={formData.phone || ""}
                   onChange={handleChange}
-                  placeholder="+1 (555) 000-0000"
-                  className="w-full bg-[#28364D] border border-[#5875A7] text-[#EEF1F6] px-4 py-2 rounded-lg focus:outline-none focus:border-[#7A3FE0]"
+                  className="w-full mt-1 bg-[#28364D] border border-[#5875A7] p-2 rounded-lg text-white"
                 />
               ) : (
-                <p className="text-[#EEF1F6] text-lg">
+                <p className="text-white mt-1">
                   {user.phone || "Not provided"}
                 </p>
               )}
             </div>
 
+            {/* Email */}
             <div>
-              <label className="block text-[#B2C0D7] text-sm font-medium mb-2">
-                Account Type
-              </label>
-              <p className="text-[#EEF1F6] text-lg capitalize">
-                {user.role === "user" ? "🛍️ Customer" : "🛠️ Service Provider"}
-              </p>
+              <label className="text-[#B2C0D7] text-sm">Email</label>
+              <p className="text-white mt-1">{user.email}</p>
             </div>
 
+            {/* Member */}
             <div>
-              <label className="block text-[#B2C0D7] text-sm font-medium mb-2">
-                Member Since
-              </label>
-              <p className="text-[#EEF1F6] text-lg">
+              <label className="text-[#B2C0D7] text-sm">Member Since</label>
+              <p className="text-white mt-1">
                 {new Date().toLocaleDateString()}
               </p>
             </div>
           </div>
 
-          <div className="flex gap-4 mt-8 pt-8 border-t border-[#5875A7]">
-            {!editing ? (
-              <>
-                <button
-                  onClick={() => setEditing(true)}
-                  className="flex-1 bg-gradient-to-r from-[#7A3FE0] to-[#5875A7] text-[#EEF1F6] py-3 rounded-lg font-semibold hover:shadow-lg transition"
-                >
-                  ✏️ Edit Profile
-                </button>
-                <button
-                  onClick={() => navigate("/")}
-                  className="flex-1 bg-[#486089] text-[#EEF1F6] py-3 rounded-lg font-semibold hover:bg-[#5875A7] transition"
-                >
-                  Go Back
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={handleSave}
-                  className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition"
-                >
-                  ✓ Save Changes
-                </button>
-                <button
-                  onClick={() => {
-                    setEditing(false);
-                    setFormData(user);
-                  }}
-                  className="flex-1 bg-[#486089] text-[#EEF1F6] py-3 rounded-lg font-semibold hover:bg-[#5875A7] transition"
-                >
-                  ✕ Cancel
-                </button>
-              </>
-            )}
+          {/* ACTION BUTTONS */}
+          {editing && (
+            <div className="flex gap-4 mt-6">
+              <button
+                onClick={handleSave}
+                className="flex-1 bg-green-600 py-2 rounded-lg text-white hover:bg-green-700"
+              >
+                Save Changes
+              </button>
+
+              <button
+                onClick={() => setEditing(false)}
+                className="flex-1 bg-[#486089] py-2 rounded-lg text-white"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 🔥 QUICK ACTIONS */}
+        <div className="grid md:grid-cols-3 gap-6">
+          <div
+            onClick={() => navigate("/orders")}
+            className="bg-[#384B6B] p-5 rounded-xl border border-[#5875A7] hover:bg-[#486089] cursor-pointer"
+          >
+            <h4 className="text-white font-semibold">📦 Orders</h4>
+            <p className="text-[#B2C0D7] text-sm">View your bookings</p>
+          </div>
+
+          <div className="bg-[#384B6B] p-5 rounded-xl border border-[#5875A7] hover:bg-[#486089] cursor-pointer">
+            <h4
+              onClick={() => navigate("/favorites")}
+              className="text-white font-semibold"
+            >
+              ❤️ Favorites
+            </h4>
+            <p className="text-[#B2C0D7] text-sm">Saved workers</p>
+          </div>
+
+          <div className="bg-[#384B6B] p-5 rounded-xl border border-[#5875A7] hover:bg-[#486089] cursor-pointer">
+            <h4
+              onClick={() => alert("Settings coming soon")}
+              className="text-white font-semibold"
+            >
+              ⚙️ Settings
+            </h4>
+            <p className="text-[#B2C0D7] text-sm">Manage account</p>
           </div>
         </div>
       </div>

@@ -1,160 +1,194 @@
 import { useNavigate } from "react-router-dom";
-import { workers } from "../data/workers";
+import { useEffect, useState } from "react";
 import WorkerCard from "../components/WorkerCard";
-import { bestValueWorkers } from "../data/workers";
 import API from "../api/axios";
+import plumbingImg from "../assets/services/plumbing.svg";
+import electricalImg from "../assets/services/electrical.svg";
+import paintingImg from "../assets/services/painting.svg";
+import cleaningImg from "../assets/services/cleaning.svg";
+import carpentryImg from "../assets/services/carpentry.svg";
+import hvacImg from "../assets/services/hvac.svg";
+import vehicleImg from "../assets/services/vehicle.svg";
+import securityImg from "../assets/services/security.svg";
+
+const serviceImages = {
+  1: plumbingImg,
+  2: electricalImg,
+  3: paintingImg,
+  4: cleaningImg,
+  5: carpentryImg,
+  6: hvacImg,
+  7: vehicleImg,
+  8: securityImg,
+};
 
 export default function Home() {
   const navigate = useNavigate();
 
+  const [services, setServices] = useState([]);
+  const [topWorkers, setTopWorkers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const [user, setUser] = useState(null);
+  const [stats, setStats] = useState({});
+
+  useEffect(() => {
+    const u = JSON.parse(localStorage.getItem("user"));
+    setUser(u);
+
+    const loadData = async () => {
+      try {
+        const [sRes, wRes] = await Promise.all([
+          API.get("/services"),
+          API.get("/workers"),
+        ]);
+
+        setServices(sRes.data || []);
+
+        const sorted = (wRes.data || []).sort(
+          (a, b) => (b.rating || 0) - (a.rating || 0)
+        );
+
+        setTopWorkers(sorted.slice(0, 6));
+
+        // 🔥 ROLE BASED STATS
+        if (u?.role === "worker") {
+          const bRes = await API.get(`/bookings/worker/${u.id}`);
+          setStats({ totalBookings: bRes.data.length });
+        }
+
+        if (u?.role === "admin") {
+          setStats({ totalWorkers: wRes.data.length });
+        }
+
+      } catch (err) {
+        console.log(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
   return (
     <div className="bg-[#28364D] min-h-screen">
+
+      {/* 🔥 ROLE BASED HEADER */}
+      {user && (
+        <div className="bg-[#28364D] px-6 pt-10 pb-4 max-w-7xl mx-auto">
+
+          {/* USER */}
+          {user.role === "user" && (
+            <>
+              <h1 className="text-3xl font-bold text-white">
+                Welcome, {user.name}
+              </h1>
+              <p className="text-[#B2C0D7] mt-2">
+                Find trusted professionals for your needs
+              </p>
+            </>
+          )}
+
+          {/* WORKER */}
+          {user.role === "worker" && (
+            <div className="bg-[#384B6B] p-6 rounded-xl border border-[#5875A7] mb-6">
+              <h2 className="text-xl text-white mb-2">Worker Dashboard</h2>
+              <p className="text-[#B2C0D7]">
+                Total Bookings:{" "}
+                <span className="text-[#EEF1F6] font-semibold">
+                  {stats.totalBookings || 0}
+                </span>
+              </p>
+
+              <button
+                onClick={() => navigate("/worker")}
+                className="mt-4 bg-[#7A3FE0] px-5 py-2 rounded-lg"
+              >
+                Go to Dashboard
+              </button>
+            </div>
+          )}
+
+          {/* ADMIN */}
+          {user.role === "admin" && (
+            <div className="bg-[#384B6B] p-6 rounded-xl border border-[#5875A7] mb-6">
+              <h2 className="text-xl text-white mb-2">Admin Overview</h2>
+              <p className="text-[#B2C0D7]">
+                Total Workers:{" "}
+                <span className="text-[#EEF1F6] font-semibold">
+                  {stats.totalWorkers || 0}
+                </span>
+              </p>
+
+              <button
+                onClick={() => navigate("/admin")}
+                className="mt-4 bg-[#7A3FE0] px-5 py-2 rounded-lg"
+              >
+                Open Admin Panel
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* HERO */}
       <div className="bg-[#384B6B] text-[#EEF1F6] py-28 px-6 text-center">
-        <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-6">
+        <h1 className="text-4xl md:text-5xl font-semibold mb-6">
           Find Your Perfect Service
         </h1>
 
         <p className="text-[#B2C0D7] max-w-xl mx-auto mb-10 text-lg">
-          Connect with verified professionals near you. Fast, reliable, and
-          hassle-free.
+          Connect with verified professionals near you. Fast, reliable, and hassle-free.
         </p>
 
         <div className="flex justify-center gap-4 flex-wrap">
           <button
             onClick={() => navigate("/services")}
-            className="bg-[#EEF1F6] text-[#28364D] px-6 py-2 rounded-full font-medium hover:bg-[#D0D8E6] transition"
+            className="bg-[#EEF1F6] text-[#28364D] px-6 py-2 rounded-full"
           >
             Browse Services
           </button>
 
-          <button className="border border-[#5875A7] px-6 py-2 rounded-full text-[#B2C0D7] hover:bg-[#486089] hover:text-[#EEF1F6] transition">
+          <button
+            onClick={() => navigate("/learnmore")}
+            className="border border-[#5875A7] px-6 py-2 rounded-full"
+          >
             Learn More
           </button>
         </div>
       </div>
 
-      {/* STATS */}
-      <div className="bg-[#486089] py-16 px-6">
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6">
-          {[
-            { value: "500+", label: "Workers" },
-            { value: "10k+", label: "Jobs Done" },
-            { value: "4.8★", label: "Rating" },
-            { value: "24/7", label: "Support" },
-          ].map((item, i) => (
-            <div
-              key={i}
-              className="bg-[#384B6B] border border-[#5875A7] rounded-xl py-6 px-4 text-center transition hover:bg-[#5875A7]"
-            >
-              <h2 className="text-xl md:text-2xl font-semibold text-[#EEF1F6]">
-                {item.value}
-              </h2>
+      {/* SERVICES */}
+      <div className="py-16 px-6 max-w-7xl mx-auto">
+        <h2 className="text-2xl text-white mb-6">Services</h2>
 
-              <p className="text-sm text-[#B2C0D7] mt-1">{item.label}</p>
-            </div>
-          ))}
-        </div>
+        {loading ? (
+          <div className="text-white">Loading...</div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {services.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => navigate(`/find-workers/${s.id}`)}
+                className="bg-[#384B6B] p-6 rounded-xl"
+              >
+                <img src={serviceImages[s.id]} className="w-12 mx-auto mb-2" />
+                <h3 className="text-white text-center">{s.name}</h3>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
-
-      {/* HOW IT WORKS */}
-      <div className="bg-[#28364D] py-20 px-6">
-        <h2 className="text-2xl md:text-3xl font-semibold text-[#EEF1F6] text-center mb-12">
-          How It Works
-        </h2>
-
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            {
-              step: "1",
-              title: "Search",
-              desc: "Find the perfect service provider for your needs",
-            },
-            {
-              step: "2",
-              title: "Book",
-              desc: "Schedule a time that works for you",
-            },
-            {
-              step: "3",
-              title: "Complete",
-              desc: "Enjoy quality service with guarantee",
-            },
-          ].map((item, i) => (
-            <div
-              key={i}
-              className="bg-[#384B6B] border border-[#5875A7] rounded-xl p-6 text-center transition hover:bg-[#5875A7]"
-            >
-              <h3 className="text-3xl font-bold text-[#EEF1F6] mb-3">
-                {item.step}
-              </h3>
-
-              <h4 className="text-lg font-semibold text-[#EEF1F6]">
-                {item.title}
-              </h4>
-
-              <p className="text-sm text-[#B2C0D7] mt-2">{item.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="h-5 bg-white" />
 
       {/* TOP WORKERS */}
-      <div className="bg-[#28364D] py-20 px-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-12">
-            <div>
-              <h2 className="text-2xl md:text-3xl font-semibold text-[#EEF1F6]">
-                ⭐ Top Rated Workers
-              </h2>
-              <p className="text-[#B2C0D7] mt-1">
-                Handpicked professionals with excellent reviews
-              </p>
-            </div>
+      <div className="py-20 px-6 max-w-7xl mx-auto">
+        <h2 className="text-2xl text-white mb-8">⭐ Top Workers</h2>
 
-            <button className="bg-[#486089] text-[#EEF1F6] px-5 py-2 rounded-lg hover:bg-[#5875A7] transition">
-              View All
-            </button>
-          </div>
-
-          {/* Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {workers.map((worker) => (
-              <WorkerCard key={worker.id} worker={worker} />
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="h-5 bg-white" />
-
-      {/* BEST VALUE */}
-      <div className="bg-[#28364D] py-20 px-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-12">
-            <div>
-              <h2 className="text-2xl md:text-3xl font-semibold text-[#EEF1F6]">
-                💰 Best Value
-              </h2>
-              <p className="text-[#B2C0D7] mt-1">
-                Premium quality at the best prices
-              </p>
-            </div>
-
-            <button className="bg-[#486089] text-[#EEF1F6] px-5 py-2 rounded-lg hover:bg-[#5875A7] transition">
-              View All
-            </button>
-          </div>
-
-          {/* Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {bestValueWorkers.map((worker) => (
-              <WorkerCard key={worker.id} worker={worker} />
-            ))}
-          </div>
+        <div className="grid md:grid-cols-3 gap-8">
+          {topWorkers.map((worker) => (
+            <WorkerCard key={worker.id} worker={worker} />
+          ))}
         </div>
       </div>
     </div>

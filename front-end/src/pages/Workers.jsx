@@ -26,7 +26,7 @@ export default function Workers() {
   useEffect(() => {
     const fetchWorkers = async () => {
       try {
-        const res = await API.get(`/workers/${serviceId}`);
+        const res = await API.get(`/workers/service/${serviceId}`);
         setWorkers(res.data);
       } catch (err) {
         console.log(err);

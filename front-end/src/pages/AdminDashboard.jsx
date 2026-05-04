@@ -2,12 +2,11 @@ import { useEffect, useState } from "react";
 import API from "../api/axios";
 
 export default function AdminDashboard() {
-
   const [workers, setWorkers] = useState([]);
 
   useEffect(() => {
     fetchWorkers();
-  });
+  }, []);
 
   const fetchWorkers = async () => {
     try {
@@ -28,7 +27,7 @@ export default function AdminDashboard() {
   };
 
   const deleteWorker = async (id) => {
-    try{
+    try {
       await API.delete(`/workers/${id}`);
       fetchWorkers();
     } catch (err) {
@@ -37,41 +36,87 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Admin Panel</h1>
-
-      {workers.map((worker) => (
-        <div key={worker.id} className="border p-4 mb-3 rounded shadow">
-          <h2 className="font-semibold">{worker.name}</h2>
-
-          <p>Experience: {worker.experience} years</p>
-          <p>Rating: {worker.rating}</p>
-
-          <p>
-            Status:{" "}
-            {worker.is_approved ? "Approved" : "Pending"}
+    <div className="bg-[#28364D] min-h-screen px-6 py-16">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-[#EEF1F6]">
+            🛡️ Admin Panel
+          </h1>
+          <p className="text-[#B2C0D7] mt-2">
+            Manage and approve service providers
           </p>
-
-          <div className="mt-2 space-x-2">
-            {!worker.is_approved && (
-              <button
-                onClick={() => approveWorker(worker.id)}
-                className="bg-green-500 text-white px-3 py-1"
-              >
-                Approve
-              </button>
-            )}
-
-            <button
-              onClick={() => deleteWorker(worker.id)}
-              className="bg-red-500 text-white px-3 py-1"
-            >
-              Delete
-            </button>
-          </div>
         </div>
-      ))}
+
+        {/* Workers List */}
+        {workers.length === 0 ? (
+          <div className="bg-[#384B6B] rounded-2xl border border-[#5875A7] p-12 text-center">
+            <p className="text-[#B2C0D7] text-lg">No workers to manage</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {workers.map((worker) => (
+              <div
+                key={worker.id}
+                className="bg-[#384B6B] rounded-xl border border-[#5875A7] p-6 hover:border-[#7A3FE0] transition"
+              >
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  {/* Worker Info */}
+                  <div className="flex-1">
+                    <h2 className="text-lg font-semibold text-[#EEF1F6]">
+                      👷 {worker.name}
+                    </h2>
+                    <div className="grid grid-cols-3 gap-4 mt-3 text-sm">
+                      <div>
+                        <p className="text-[#B2C0D7]">Experience</p>
+                        <p className="text-[#EEF1F6] font-semibold">
+                          {worker.experience || 0} years
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[#B2C0D7]">Rating</p>
+                        <p className="text-[#EEF1F6] font-semibold">
+                          ⭐ {worker.rating || 0}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[#B2C0D7]">Status</p>
+                        <p
+                          className={`font-semibold ${
+                            worker.is_approved
+                              ? "text-green-400"
+                              : "text-yellow-400"
+                          }`}
+                        >
+                          {worker.is_approved ? "✓ Approved" : "⏳ Pending"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 flex-wrap md:flex-nowrap">
+                    {!worker.is_approved && (
+                      <button
+                        onClick={() => approveWorker(worker.id)}
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold transition"
+                      >
+                        ✓ Approve
+                      </button>
+                    )}
+                    <button
+                      onClick={() => deleteWorker(worker.id)}
+                      className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition"
+                    >
+                      🗑️ Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
-
 }

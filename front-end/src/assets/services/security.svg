@@ -1,0 +1,63 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Define sharp-edged geometric background facets -->
+  <defs>
+    <linearGradient id="facetGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#EBDDF2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D8C9E6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Sharp-edged geometric background shapes (Light Purple) -->
+  <path d="M0 0 H200 V200 H0 Z" fill="#F3EBF7"/>
+  <path d="M0 40 L60 0 H140 L200 40 V160 L140 200 H60 L0 160 Z" fill="#EADAF1"/>
+  <path d="M20 60 L100 20 L180 60 L180 140 L100 180 L20 140 Z" fill="#EBDDF2" stroke="#D1BFDF" stroke-width="2"/>
+
+  <!-- Human Security Guard Figure -->
+  <g transform="translate(45, 30) scale(1.1)">
+    <!-- Security Cap -->
+    <path d="M50 15 H70 L75 35 H45 Z" fill="#3D3A6F"/>
+    <path d="M58 20 H62 V24 L60 26 L58 24 Z" fill="#FFD700"/> <!-- Badge -->
+    
+    <!-- Face/Head -->
+    <circle cx="60" cy="45" r="12" fill="#E0C09F"/>
+    <path d="M60 57 C60 57, 52 53, 52 48" fill="none" stroke="#E0C09F" stroke-width="1"/> <!-- Hair line -->
+    
+    <!-- Uniform Shirt -->
+    <path d="M40 57 H80 V90 L60 100 L40 90 Z" fill="#3D3A6F"/>
+    <path d="M40 57 L48 60 H72 L80 57 Z" fill="#2E2C5B"/> <!-- Collar -->
+    
+    <!-- Epaulets (Shoulder Straps) -->
+    <rect x="38" y="58" width="16" height="5" rx="1" fill="#FFD700"/>
+    <rect x="66" y="58" width="16" height="5" rx="1" fill="#FFD700"/>
+    
+    <!-- Arms -->
+    <rect x="28" y="60" width="12" height="40" rx="3" fill="#3D3A6F"/>
+    <rect x="80" y="60" width="12" height="40" rx="3" fill="#3D3A6F"/>
+    
+    <!-- Chest details -->
+    <circle cx="50" cy="70" r="1.5" fill="#FFFFFF"/>
+    <circle cx="50" cy="78" r="1.5" fill="#FFFFFF"/>
+    <circle cx="50" cy="86" r="1.5" fill="#FFFFFF"/>
+    
+    <!-- Name Tag -->
+    <rect x="63" y="68" width="12" height="4" rx="1" fill="#FFFFFF" stroke="#333333" stroke-width="0.5"/>
+    <text x="65" y="71" font-family="Arial" font-size="2" fill="#333333">GUARD</text>
+    
+    <!-- Utility Belt -->
+    <rect x="38" y="93" width="44" height="10" rx="2" fill="#222222"/>
+    <rect x="56" y="94" width="8" height="8" rx="1" fill="#C0C0C0"/> <!-- Buckle -->
+    <path d="M68 95 H72 V101 H68 Z" fill="#C0C0C0"/> <!-- Radio/Pouch -->
+    <circle cx="70" cy="98" r="1.5" fill="#111111"/> <!-- Radio button -->
+    
+    <!-- Trousers/Legs -->
+    <path d="M40 103 H80 V155 H40 Z" fill="#3D3A6F"/>
+    <path d="M40 103 L60 110 L80 103 Z" fill="#2E2C5B"/>
+    
+    <!-- Boots -->
+    <path d="M40 155 H52 L55 165 L38 165 Z" fill="#111111"/>
+    <path d="M68 155 H80 L82 165 L65 165 Z" fill="#111111"/>
+    
+    <!-- Standing pose details -->
+    <path d="M40 103 V155 H45 V110 L60 115 L75 110 V155 H80 V103 Z" fill="#3D3A6F" stroke="#2E2C5B" stroke-width="1"/>
+  </g>
+</svg>
