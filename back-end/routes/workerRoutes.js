@@ -2,6 +2,7 @@ import express from "express";
 import {
   getWorkersByServices,
   getAllWorkers,
+  getPendingWorkers,
   approveWorker,
   deleteWorker,
   createWorkerProfile,
@@ -15,6 +16,24 @@ const router = express.Router();
 
 router.post("/", verifyToken, createWorkerProfile);
 router.patch("/:workerId", verifyToken, updateWorkerProfile);
+router.get(
+  "/approval/pending",
+  verifyToken,
+  verifyRole(["admin"]),
+  getPendingWorkers,
+);
+router.patch(
+  "/approval/approve/:workerId",
+  verifyToken,
+  verifyRole(["admin"]),
+  approveWorker,
+);
+router.delete(
+  "/approval/reject/:workerId",
+  verifyToken,
+  verifyRole(["admin"]),
+  deleteWorker,
+);
 router.get("/service/:serviceId", getWorkersByServices);
 router.get("/:workerId", getWorkerProfile);
 router.get("/", getAllWorkers);

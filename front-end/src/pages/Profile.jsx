@@ -10,6 +10,32 @@ export default function Profile() {
 
   const navigate = useNavigate();
 
+  const getWorkerRequestTone = (status) => {
+    if (status === "approved") {
+      return {
+        badge: "bg-green-500/20 text-green-300 border-green-500/30",
+        title: "Approved",
+        message: "Your worker access is active. You can open the worker dashboard.",
+      };
+    }
+
+    if (status === "rejected") {
+      return {
+        badge: "bg-red-500/20 text-red-300 border-red-500/30",
+        title: "Rejected",
+        message:
+          "Your worker request was rejected by admin. You can continue using the app as a customer.",
+      };
+    }
+
+    return {
+      badge: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
+      title: "Pending Approval",
+      message:
+        "Your worker request has been sent to admin. You will get worker access after approval.",
+    };
+  };
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -64,6 +90,7 @@ export default function Profile() {
 
           setUser(res.data);
           setFormData(res.data);
+          localStorage.setItem("user", JSON.stringify(res.data));
         } catch {
           const fallback = JSON.parse(localUser);
           setUser(fallback);
@@ -116,6 +143,18 @@ export default function Profile() {
             <div className="mt-2 text-sm text-[#B2C0D7]">
               {user.role === "user" ? "🛍️ Customer" : "🛠️ Worker"}
             </div>
+            {user.role === "worker" && (
+              <div
+                className={`inline-flex mt-3 items-center gap-2 px-3 py-1 rounded-full text-xs border ${
+                  getWorkerRequestTone(user.worker_request_status).badge
+                }`}
+              >
+                <span>Worker Request</span>
+                <span className="uppercase tracking-wide">
+                  {user.worker_request_status || "pending"}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Action */}
@@ -126,6 +165,23 @@ export default function Profile() {
             {editing ? "Cancel" : "Edit"}
           </button>
         </div>
+
+        {user.role === "worker" && (
+          <div className="relative overflow-hidden bg-[#384B6B] border border-[#5875A7] rounded-2xl p-6">
+            <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-[#7A3FE0]/20 blur-2xl" />
+            <div className="relative">
+              <p className="text-xs uppercase tracking-[0.2em] text-[#B2C0D7] mb-2">
+                Worker Verification
+              </p>
+              <h3 className="text-2xl font-semibold text-[#EEF1F6] mb-2">
+                {getWorkerRequestTone(user.worker_request_status).title}
+              </h3>
+              <p className="text-[#B2C0D7] max-w-2xl">
+                {getWorkerRequestTone(user.worker_request_status).message}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* 🔥 ACCOUNT DETAILS */}
         <div className="bg-[#384B6B] rounded-2xl p-6 border border-[#5875A7]">

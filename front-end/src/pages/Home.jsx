@@ -31,6 +31,8 @@ export default function Home() {
 
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({});
+  const canAccessWorkerDashboard =
+    user?.role === "worker" && !!user?.worker_is_approved;
 
   useEffect(() => {
     const u = JSON.parse(localStorage.getItem("user"));
@@ -46,13 +48,13 @@ export default function Home() {
         setServices(sRes.data || []);
 
         const sorted = (wRes.data || []).sort(
-          (a, b) => (b.rating || 0) - (a.rating || 0)
+          (a, b) => (b.rating || 0) - (a.rating || 0),
         );
 
         setTopWorkers(sorted.slice(0, 6));
 
         // 🔥 ROLE BASED STATS
-        if (u?.role === "worker") {
+        if (u?.role === "worker" && u?.worker_is_approved) {
           const bRes = await API.get(`/bookings/worker/${u.id}`);
           setStats({ totalBookings: bRes.data.length });
         }
@@ -60,7 +62,6 @@ export default function Home() {
         if (u?.role === "admin") {
           setStats({ totalWorkers: wRes.data.length });
         }
-
       } catch (err) {
         console.log(err);
       } finally {
@@ -72,12 +73,10 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="bg-[#28364D] min-h-screen">
-
+    <div className="bg-[#28364D] min-h-screen pt-16">
       {/* 🔥 ROLE BASED HEADER */}
       {user && (
-        <div className="bg-[#28364D] px-6 pt-10 pb-4 max-w-7xl mx-auto">
-
+        <div className="bg-[#28364D] px-6 pt-6 pb-4 max-w-7xl mx-auto">
           {/* USER */}
           {user.role === "user" && (
             <>
@@ -91,7 +90,7 @@ export default function Home() {
           )}
 
           {/* WORKER */}
-          {user.role === "worker" && (
+          {canAccessWorkerDashboard && (
             <div className="bg-[#384B6B] p-6 rounded-xl border border-[#5875A7] mb-6">
               <h2 className="text-xl text-white mb-2">Worker Dashboard</h2>
               <p className="text-[#B2C0D7]">
@@ -139,7 +138,8 @@ export default function Home() {
         </h1>
 
         <p className="text-[#B2C0D7] max-w-xl mx-auto mb-10 text-lg">
-          Connect with verified professionals near you. Fast, reliable, and hassle-free.
+          Connect with verified professionals near you. Fast, reliable, and
+          hassle-free.
         </p>
 
         <div className="flex justify-center gap-4 flex-wrap">

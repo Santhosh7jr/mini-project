@@ -2,12 +2,30 @@ import pool from "../config/db.js";
 
 export const addFavorite = async (req, res) => {
   const user_id = req.user.id;
-const { worker_id } = req.body;
+  const { worker_id } = req.body;
 
   try {
     if (!worker_id) {
-  return res.status(400).json({ message: "Missing required fields" });
-}
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const user = await pool.query("SELECT id FROM users WHERE id = $1", [
+      user_id,
+    ]);
+
+    if (user.rows.length === 0) {
+      return res.status(403).json({
+        message: "Favorites are only available for registered users",
+      });
+    }
+
+    const worker = await pool.query("SELECT id FROM workers WHERE id = $1", [
+      worker_id,
+    ]);
+
+    if (worker.rows.length === 0) {
+      return res.status(404).json({ message: "Worker not found" });
+    }
 
     const result = await pool.query(
       `INSERT INTO favorites (user_id, worker_id) 
@@ -26,9 +44,13 @@ const { worker_id } = req.body;
 
 export const removeFavorite = async (req, res) => {
   const user_id = req.user.id;
-const { worker_id } = req.body;
+  const { worker_id } = req.body;
 
   try {
+    if (!worker_id) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
     await pool.query(
       "DELETE FROM favorites WHERE user_id = $1 AND worker_id = $2",
       [user_id, worker_id],
@@ -65,7 +87,7 @@ export const getFavorites = async (req, res) => {
 
 export const isFavorite = async (req, res) => {
   const userId = req.user.id;
-const { workerId } = req.params;
+  const { workerId } = req.params;
 
   try {
     const result = await pool.query(

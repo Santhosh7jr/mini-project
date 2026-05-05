@@ -32,9 +32,10 @@ export default function Login() {
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
       const role = res.data.user.role;
+      const isApprovedWorker = !!res.data.user.worker_is_approved;
 
       if (role === "admin") navigate("/admin");
-      else if (role === "worker") navigate("/worker");
+      else if (role === "worker" && isApprovedWorker) navigate("/worker");
       else navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");

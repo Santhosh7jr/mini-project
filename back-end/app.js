@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import pool from "./config/db.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import serviceRoutes from "./routes/serviceRoutes.js";
@@ -12,6 +13,36 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+const ensureWorkerRequestStatusColumn = async () => {
+  try {
+    await pool.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS worker_request_status VARCHAR(20) DEFAULT 'none'
+      CHECK (worker_request_status IN ('none', 'pending', 'approved', 'rejected'))
+    `);
+
+    await pool.query(`
+      UPDATE users u
+      SET worker_request_status = CASE
+            WHEN EXISTS (
+              SELECT 1
+              FROM workers w
+              WHERE w.user_id = u.id
+                AND w.is_approved = true
+            ) THEN 'approved'
+            ELSE 'pending'
+          END,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE u.role = 'worker'
+        AND u.worker_request_status = 'none'
+    `);
+  } catch (error) {
+    console.error("Failed to ensure worker request status column:", error);
+  }
+};
+
+ensureWorkerRequestStatusColumn();
 
 // Routes
 app.use("/api/auth", authRoutes);

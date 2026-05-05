@@ -15,6 +15,14 @@ const workerAvatars = {
   "worker5.svg": worker5,
 };
 
+const getStoredUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem("user"));
+  } catch {
+    return null;
+  }
+};
+
 export default function FindWorkers() {
   const [workers, setWorkers] = useState([]);
   const [filteredWorkers, setFilteredWorkers] = useState([]);
@@ -23,6 +31,7 @@ export default function FindWorkers() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sort, setSort] = useState("top");
   const [favorites, setFavorites] = useState([]);
+  const [currentUser] = useState(getStoredUser);
 
   const { serviceId } = useParams();
   const navigate = useNavigate();
@@ -41,6 +50,24 @@ export default function FindWorkers() {
     };
     fetchWorkers();
   }, []);
+
+  useEffect(() => {
+    if (!currentUser || currentUser.role === "admin") {
+      setFavorites([]);
+      return;
+    }
+
+    const fetchFavorites = async () => {
+      try {
+        const res = await API.get("/favorites/my");
+        setFavorites((res.data || []).map((worker) => worker.id));
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchFavorites();
+  }, [currentUser]);
 
   // Auto-select category based on serviceId
   useEffect(() => {
@@ -85,27 +112,21 @@ export default function FindWorkers() {
   }, [workers, search, selectedCategory, sort, serviceId]);
 
   const toggleFavorite = async (workerId) => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    const token = localStorage.getItem("token");
-
-    if (!user) {
+    if (!currentUser) {
       navigate("/login");
       return;
     }
 
+    if (currentUser.role === "admin") return;
+
     try {
       if (favorites.includes(workerId)) {
         await API.delete("/favorites", {
-          headers: { Authorization: `Bearer ${token}` },
           data: { worker_id: workerId },
         });
         setFavorites(favorites.filter((id) => id !== workerId));
       } else {
-        await API.post("/bookings", {
-          worker_id: workerId,
-          service_id: serviceId,
-          location: "Default Location",
-        });
+        await API.post("/favorites", { worker_id: workerId });
         setFavorites([...favorites, workerId]);
       }
     } catch (err) {
@@ -198,16 +219,18 @@ export default function FindWorkers() {
                     alt={worker.name}
                     className="w-full h-48 object-cover"
                   />
-                  <button
-                    onClick={() => toggleFavorite(worker.id)}
-                    className={`absolute top-3 right-3 text-2xl transition ${
-                      favorites.includes(worker.id)
-                        ? "text-red-500"
-                        : "text-[#B2C0D7]"
-                    }`}
-                  >
-                    ♥
-                  </button>
+                  {currentUser?.role !== "admin" && (
+                    <button
+                      onClick={() => toggleFavorite(worker.id)}
+                      className={`absolute top-3 right-3 text-2xl transition ${
+                        favorites.includes(worker.id)
+                          ? "text-red-500"
+                          : "text-[#B2C0D7]"
+                      }`}
+                    >
+                      ♥
+                    </button>
+                  )}
                 </div>
 
                 {/* Info */}

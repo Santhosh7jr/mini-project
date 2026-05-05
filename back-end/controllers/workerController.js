@@ -10,6 +10,18 @@ export const createWorkerProfile = async (req, res) => {
     if (!service_id || !price) {
       return res.status(400).json({ message: "Missing required fields" });
     }
+
+    const user = await pool.query(
+      "SELECT role, worker_request_status FROM users WHERE id = $1",
+      [user_id],
+    );
+
+    if (user.rows.length === 0 || user.rows[0].role !== "worker") {
+      return res
+        .status(403)
+        .json({ message: "Only workers can create a profile" });
+    }
+
     // Check if worker profile already exists
     const existing = await pool.query(
       "SELECT * FROM workers WHERE user_id = $1",
@@ -20,9 +32,11 @@ export const createWorkerProfile = async (req, res) => {
       return res.status(400).json({ message: "Worker profile already exists" });
     }
 
+    const isApproved = user.rows[0].worker_request_status === "approved";
+
     const result = await pool.query(
-      `INSERT INTO workers (user_id, service_id, image, price, location, description, experience) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7) 
+      `INSERT INTO workers (user_id, service_id, image, price, location, description, experience, is_approved) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
        RETURNING *`,
       [
         user_id,
@@ -32,6 +46,7 @@ export const createWorkerProfile = async (req, res) => {
         location || null,
         description || null,
         experience || 0,
+        isApproved,
       ],
     );
 
@@ -161,23 +176,54 @@ export const getAllWorkers = async (req, res) => {
   }
 };
 
-export const approveWorker = async (req, res) => {
-  const { workerId } = req.params;
-
+export const getPendingWorkers = async (req, res) => {
   try {
     const result = await pool.query(
-      `UPDATE workers 
-      SET is_approved = true 
-      WHERE id = $1 
-      RETURNING *`,
-      [workerId],
+      `SELECT
+        u.id,
+        u.name,
+        u.email,
+        u.phone,
+        u.role,
+        u.worker_request_status,
+        u.created_at
+       FROM users u
+       WHERE u.role = 'worker'
+         AND u.worker_request_status = 'pending'
+       ORDER BY u.created_at DESC`,
     );
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Worker not found" });
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const approveWorker = async (req, res) => {
+  const { workerId: userId } = req.params;
+
+  try {
+    const userResult = await pool.query(
+      `UPDATE users
+       SET worker_request_status = 'approved'
+       WHERE id = $1 AND role = 'worker'
+       RETURNING id, name, email, role, worker_request_status`,
+      [userId],
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ message: "Worker request not found" });
     }
 
-    res.json(result.rows[0]);
+    await pool.query(
+      `UPDATE workers
+       SET is_approved = true
+       WHERE user_id = $1`,
+      [userId],
+    );
+
+    res.json(userResult.rows[0]);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -185,33 +231,42 @@ export const approveWorker = async (req, res) => {
 };
 
 export const deleteWorker = async (req, res) => {
-  const { workerId } = req.params;
+  const { workerId: userId } = req.params;
 
   try {
-    const existing = await pool.query(
-      "SELECT user_id FROM workers WHERE id = $1",
-      [workerId],
+    const existingUser = await pool.query(
+      "SELECT id, role FROM users WHERE id = $1",
+      [userId],
     );
 
-    if (existing.rows.length === 0) {
-      return res.status(404).json({ message: "Worker not found" });
+    if (existingUser.rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
     }
 
     // 🔥 ONLY owner or admin
-    if (existing.rows[0].user_id !== req.user.id && req.user.role !== "admin") {
+    if (Number(userId) !== req.user.id && req.user.role !== "admin") {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
     const result = await pool.query(
-      `DELETE FROM workers WHERE id = $1 RETURNING id`,
-      [workerId],
+      `UPDATE users
+       SET role = 'user',
+           worker_request_status = 'rejected'
+       WHERE id = $1
+       RETURNING id, name, email, role, worker_request_status`,
+      [userId],
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Worker not found" });
+      return res.status(404).json({ message: "Worker request not found" });
     }
 
-    res.json({ message: "Worker Deleted" });
+    await pool.query(
+      `DELETE FROM workers WHERE user_id = $1`,
+      [userId],
+    );
+
+    res.json({ message: "Worker request rejected", user: result.rows[0] });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Server error" });

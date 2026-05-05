@@ -2,6 +2,17 @@ import pool from "../config/db.js";
 import bcrypt from "bcrypt";
 import generateToken from "../utils/generateToken.js";
 
+const getWorkerApprovalStatus = async (userId) => {
+  const approvalResult = await pool.query(
+    `SELECT worker_request_status
+     FROM users
+     WHERE id = $1`,
+    [userId],
+  );
+
+  return approvalResult.rows[0]?.worker_request_status === "approved";
+};
+
 export const register = async (req, res) => {
   const { name, email, password, phone, role } = req.body;
 
@@ -29,14 +40,28 @@ export const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
-      "INSERT INTO users (name, email, password, phone, role) VALUES ($1,$2,$3,$4,$5) RETURNING id, name, email, phone, role",
-      [name, email, hashedPassword, phone || null, role || "user"],
+      `INSERT INTO users (name, email, password, phone, role, worker_request_status)
+       VALUES ($1,$2,$3,$4,$5,$6)
+       RETURNING id, name, email, phone, role, worker_request_status`,
+      [
+        name,
+        email,
+        hashedPassword,
+        phone || null,
+        role || "user",
+        role === "worker" ? "pending" : "none",
+      ],
     );
 
     const user = result.rows[0];
+    const worker_is_approved =
+      user.role === "worker" ? await getWorkerApprovalStatus(user.id) : false;
     const token = generateToken(user.id, user.role);
 
-    res.status(201).json({ token, user });
+    res.status(201).json({
+      token,
+      user: { ...user, worker_is_approved },
+    });
   } catch (error) {
     console.error("REGISTER ERROR:", error);
     res.status(500).json({ message: "Server error" });
@@ -91,6 +116,9 @@ export const login = async (req, res) => {
     const token = generateToken(user.id, user.role);
 
     // Return user without password
+    const worker_is_approved =
+      user.role === "worker" ? await getWorkerApprovalStatus(user.id) : false;
+
     const userWithoutPassword = {
       id: user.id,
       name: user.name,
@@ -98,6 +126,8 @@ export const login = async (req, res) => {
       phone: user.phone,
       role: user.role,
       avatar_url: user.avatar_url,
+      worker_request_status: user.worker_request_status || "none",
+      worker_is_approved,
     };
 
     res.json({ token, user: userWithoutPassword });
@@ -110,7 +140,7 @@ export const login = async (req, res) => {
 export const getMe = async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT id, name, email, phone, role, avatar_url FROM users WHERE id = $1",
+      "SELECT id, name, email, phone, role, avatar_url, worker_request_status FROM users WHERE id = $1",
       [req.user.id],
     );
 
@@ -118,7 +148,26 @@ export const getMe = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.json(result.rows[0]);
+    const user = result.rows[0];
+    const worker_is_approved =
+      user.role === "worker" ? await getWorkerApprovalStatus(user.id) : false;
+
+    res.json({ ...user, worker_is_approved });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const getAllUsers = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, name, email, phone, role, worker_request_status, created_at
+       FROM users
+       ORDER BY created_at DESC`,
+    );
+
+    res.json(result.rows);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });

@@ -7,5 +7,9 @@ export default function ProtectedRoute({ children, role }) {
 
   if (role && user.role !== role) return <Navigate to="/" />;
 
+  if (role === "worker" && !user.worker_is_approved) {
+    return <Navigate to="/" />;
+  }
+
   return children;
 }

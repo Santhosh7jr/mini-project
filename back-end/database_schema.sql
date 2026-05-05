@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
   password VARCHAR(255) NOT NULL,
   phone VARCHAR(20),
   role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('user', 'worker', 'admin')),
+  worker_request_status VARCHAR(20) DEFAULT 'none' CHECK (worker_request_status IN ('none', 'pending', 'approved', 'rejected')),
   avatar_url VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -108,3 +109,18 @@ INSERT INTO services (name, description, image, icon) VALUES
   ('Carpentry', 'Wood working and furniture installation services', 'https://images.unsplash.com/photo-1580274455191-1c62238fa333', '🪵'),
   ('AC Repair', 'Air conditioning maintenance and repair services', 'https://images.unsplash.com/photo-1585602457335-66b9d34f0b0b', '❄️')
 ON CONFLICT DO NOTHING;
+
+-- Sync already registered worker accounts into the approval flow
+UPDATE users u
+SET worker_request_status = CASE
+      WHEN EXISTS (
+        SELECT 1
+        FROM workers w
+        WHERE w.user_id = u.id
+          AND w.is_approved = true
+      ) THEN 'approved'
+      ELSE 'pending'
+    END,
+    updated_at = CURRENT_TIMESTAMP
+WHERE u.role = 'worker'
+  AND u.worker_request_status = 'none';

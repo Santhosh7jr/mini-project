@@ -10,6 +10,14 @@ import {
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
+const getStoredUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem("user"));
+  } catch {
+    return null;
+  }
+};
+
 export default function WorkerProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -19,6 +27,8 @@ export default function WorkerProfile() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("about");
   const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteSaving, setFavoriteSaving] = useState(false);
+  const [currentUser] = useState(getStoredUser);
 
   const [showBooking, setShowBooking] = useState(false);
   const [showMap, setShowMap] = useState(false);
@@ -73,8 +83,17 @@ export default function WorkerProfile() {
           : fallbackReviews
       );
 
-      const favRes = await API.get(`/favorites/check/${id}`);
-      setIsFavorite(favRes.data.isFavorite);
+      if (currentUser && currentUser.role !== "admin") {
+        try {
+          const favRes = await API.get(`/favorites/check/${id}`);
+          setIsFavorite(!!favRes.data.isFavorite);
+        } catch (err) {
+          console.log(err);
+          setIsFavorite(false);
+        }
+      } else {
+        setIsFavorite(false);
+      }
 
       setLoading(false);
     } catch (err) {
@@ -154,6 +173,36 @@ export default function WorkerProfile() {
     }
   };
 
+  const toggleFavorite = async () => {
+    if (!currentUser) {
+      navigate("/login");
+      return;
+    }
+
+    if (currentUser.role === "admin" || !worker) return;
+
+    const nextFavorite = !isFavorite;
+
+    try {
+      setFavoriteSaving(true);
+      setIsFavorite(nextFavorite);
+
+      if (nextFavorite) {
+        await API.post("/favorites", { worker_id: worker.id });
+      } else {
+        await API.delete("/favorites", {
+          data: { worker_id: worker.id },
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      setIsFavorite(!nextFavorite);
+      alert("Unable to update favorite");
+    } finally {
+      setFavoriteSaving(false);
+    }
+  };
+
   if (loading) {
     return <div className="text-white text-center mt-20">Loading...</div>;
   }
@@ -171,7 +220,21 @@ export default function WorkerProfile() {
       <div className="max-w-6xl mx-auto">
 
         {/* HEADER */}
-        <div className="bg-[#28364D] rounded-2xl p-8 flex flex-col md:flex-row gap-6 shadow-lg">
+        <div className="relative bg-[#28364D] rounded-2xl p-8 flex flex-col md:flex-row gap-6 shadow-lg">
+          {currentUser?.role !== "admin" && (
+            <button
+              onClick={toggleFavorite}
+              disabled={favoriteSaving}
+              aria-pressed={isFavorite}
+              title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+              className={`absolute top-4 right-4 z-10 h-11 w-11 rounded-full border border-white/10 bg-[#1e293b]/80 text-2xl shadow-lg backdrop-blur transition hover:scale-105 disabled:opacity-60 ${
+                isFavorite ? "text-red-500" : "text-[#B2C0D7]"
+              }`}
+            >
+              ♥
+            </button>
+          )}
+
           <img
             src={worker.image}
             alt={worker.name}
