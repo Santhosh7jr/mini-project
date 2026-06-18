@@ -2,17 +2,33 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import API from "../api/axios";
 
+const getPasswordStrengthError = (password) => {
+  const strongPasswordPattern =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+
+  if (!strongPasswordPattern.test(password)) {
+    return "Password is too weak. Please use at least 8 characters with uppercase, lowercase, number, and special character.";
+  }
+
+  return "";
+};
+
 export default function Register() {
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
     phone: "",
+    avatar_url: "",
     role: "user",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const passwordStrengthError = form.password
+    ? getPasswordStrengthError(form.password)
+    : "";
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -32,6 +48,14 @@ export default function Register() {
         return;
       }
 
+      const weakPasswordMessage = getPasswordStrengthError(form.password);
+
+      if (weakPasswordMessage) {
+        setError(weakPasswordMessage);
+        setLoading(false);
+        return;
+      }
+
       const res = await API.post("/auth/register", form);
 
       // Automatically log in after registration
@@ -47,21 +71,21 @@ export default function Register() {
   };
 
   return (
-    <div className="bg-gradient-to-br from-[#28364D] to-[#384B6B] min-h-screen flex items-center justify-center px-6 py-12">
+    <div className="bg-gradient-to-br from-[#E9E5DF] to-[#EAF4FD] min-h-screen flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-md">
         {/* Card */}
-        <div className="bg-[#384B6B] rounded-2xl border border-[#5875A7] p-8 shadow-2xl">
+        <div className="bg-[#FFFFFF] rounded-2xl border border-[#D0D7DE] p-8 shadow-2xl">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-[#EEF1F6] mb-2">
+            <h1 className="text-3xl font-bold text-[#191919] mb-2">
               Join Karigo
             </h1>
-            <p className="text-[#B2C0D7]">Create your account today</p>
+            <p className="text-[#666666]">Create your account today</p>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-500/20 border border-red-500 text-red-300 px-4 py-3 rounded-lg mb-6 text-sm">
+            <div className="bg-[#FDE7E9] border border-[#D93025] text-[#B24020] px-4 py-3 rounded-lg mb-6 text-sm">
               {error}
             </div>
           )}
@@ -70,7 +94,7 @@ export default function Register() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Name */}
             <div>
-              <label className="block text-[#B2C0D7] text-sm font-medium mb-2">
+              <label className="block text-[#666666] text-sm font-medium mb-2">
                 Full Name
               </label>
               <input
@@ -79,13 +103,13 @@ export default function Register() {
                 value={form.name}
                 onChange={handleChange}
                 placeholder="John Doe"
-                className="w-full bg-[#28364D] border border-[#5875A7] text-[#EEF1F6] px-4 py-3 rounded-lg focus:outline-none focus:border-[#7A3FE0] transition"
+                className="w-full bg-[#E9E5DF] border border-[#D0D7DE] text-[#191919] px-4 py-3 rounded-lg focus:outline-none focus:border-[#0A66C2] transition"
               />
             </div>
 
             {/* Email */}
             <div>
-              <label className="block text-[#B2C0D7] text-sm font-medium mb-2">
+              <label className="block text-[#666666] text-sm font-medium mb-2">
                 Email
               </label>
               <input
@@ -94,13 +118,13 @@ export default function Register() {
                 value={form.email}
                 onChange={handleChange}
                 placeholder="you@example.com"
-                className="w-full bg-[#28364D] border border-[#5875A7] text-[#EEF1F6] px-4 py-3 rounded-lg focus:outline-none focus:border-[#7A3FE0] transition"
+                className="w-full bg-[#E9E5DF] border border-[#D0D7DE] text-[#191919] px-4 py-3 rounded-lg focus:outline-none focus:border-[#0A66C2] transition"
               />
             </div>
 
             {/* Phone */}
             <div>
-              <label className="block text-[#B2C0D7] text-sm font-medium mb-2">
+              <label className="block text-[#666666] text-sm font-medium mb-2">
                 Phone Number
               </label>
               <input
@@ -108,29 +132,72 @@ export default function Register() {
                 name="phone"
                 value={form.phone}
                 onChange={handleChange}
-                placeholder="+1 (555) 000-0000"
-                className="w-full bg-[#28364D] border border-[#5875A7] text-[#EEF1F6] px-4 py-3 rounded-lg focus:outline-none focus:border-[#7A3FE0] transition"
+                placeholder="+91 98765 43210"
+                className="w-full bg-[#E9E5DF] border border-[#D0D7DE] text-[#191919] px-4 py-3 rounded-lg focus:outline-none focus:border-[#0A66C2] transition"
+              />
+            </div>
+
+            {/* Profile Picture */}
+            <div>
+              <label className="block text-[#666666] text-sm font-medium mb-2">
+                Profile Picture URL
+              </label>
+              <input
+                type="url"
+                name="avatar_url"
+                value={form.avatar_url}
+                onChange={handleChange}
+                placeholder="https://example.com/photo.jpg"
+                className="w-full bg-[#E9E5DF] border border-[#D0D7DE] text-[#191919] px-4 py-3 rounded-lg focus:outline-none focus:border-[#0A66C2] transition"
               />
             </div>
 
             {/* Password */}
             <div>
-              <label className="block text-[#B2C0D7] text-sm font-medium mb-2">
+              <label className="block text-[#666666] text-sm font-medium mb-2">
                 Password
               </label>
+              <div className="relative">
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 value={form.password}
                 onChange={handleChange}
                 placeholder="••••••••"
-                className="w-full bg-[#28364D] border border-[#5875A7] text-[#EEF1F6] px-4 py-3 rounded-lg focus:outline-none focus:border-[#7A3FE0] transition"
+                className="w-full bg-[#E9E5DF] border border-[#D0D7DE] text-[#191919] px-4 py-3 pr-12 rounded-lg focus:outline-none focus:border-[#0A66C2] transition"
               />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#666666] hover:text-[#0A66C2] transition"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-5 w-5"
+                    aria-hidden="true"
+                  >
+                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+                    <circle cx="12" cy="12" r="3" />
+                    {showPassword && <path d="m3 3 18 18" />}
+                  </svg>
+                </button>
+              </div>
+              {passwordStrengthError && (
+                <p className="mt-2 text-xs text-[#B24020]">
+                  {passwordStrengthError}
+                </p>
+              )}
             </div>
 
             {/* Role Selection */}
             <div>
-              <label className="block text-[#B2C0D7] text-sm font-medium mb-2">
+              <label className="block text-[#666666] text-sm font-medium mb-2">
                 Account Type
               </label>
 
@@ -142,9 +209,9 @@ export default function Register() {
                     value="user"
                     checked={form.role === "user"}
                     onChange={handleChange}
-                    className="accent-[#7A3FE0]"
+                    className="accent-[#0A66C2]"
                   />
-                  <span className="text-[#B2C0D7]">Customer</span>
+                  <span className="text-[#666666]">Customer</span>
                 </label>
 
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -154,13 +221,13 @@ export default function Register() {
                     value="worker"
                     checked={form.role === "worker"}
                     onChange={handleChange}
-                    className="accent-[#7A3FE0]"
+                    className="accent-[#0A66C2]"
                   />
-                  <span className="text-[#B2C0D7]">Service Provider</span>
+                  <span className="text-[#666666]">Service Provider</span>
                 </label>
               </div>
 
-              <p className="text-xs text-[#B2C0D7] mt-2">
+              <p className="text-xs text-[#666666] mt-2">
                 Admin accounts are managed internally
               </p>
             </div>
@@ -169,7 +236,7 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-[#5875A7] to-[#7A3FE0] text-[#EEF1F6] py-3 rounded-lg font-semibold hover:shadow-lg transition disabled:opacity-50 mt-6"
+              className="w-full bg-gradient-to-r from-[#0A66C2] to-[#004182] text-white py-3 rounded-lg font-semibold hover:shadow-lg transition disabled:opacity-50 mt-6"
             >
               {loading ? "Creating Account..." : "Create Account"}
             </button>
@@ -178,20 +245,20 @@ export default function Register() {
           {/* Divider */}
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#5875A7]"></div>
+              <div className="w-full border-t border-[#D0D7DE]"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-[#384B6B] text-[#B2C0D7]">
+              <span className="px-2 bg-[#FFFFFF] text-[#666666]">
                 Already have an account?
               </span>
             </div>
           </div>
 
           {/* Login Link */}
-          <p className="text-center text-[#B2C0D7] text-sm">
+          <p className="text-center text-[#666666] text-sm">
             <Link
               to="/login"
-              className="text-[#7A3FE0] hover:text-[#9D5BFF] font-semibold"
+              className="text-[#0A66C2] hover:text-[#004182] font-semibold"
             >
               Login here
             </Link>

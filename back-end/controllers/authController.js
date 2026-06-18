@@ -13,8 +13,19 @@ const getWorkerApprovalStatus = async (userId) => {
   return approvalResult.rows[0]?.worker_request_status === "approved";
 };
 
+const getPasswordStrengthError = (password) => {
+  const strongPasswordPattern =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+
+  if (!strongPasswordPattern.test(password)) {
+    return "Password is too weak. Please use at least 8 characters with uppercase, lowercase, number, and special character.";
+  }
+
+  return "";
+};
+
 export const register = async (req, res) => {
-  const { name, email, password, phone, role } = req.body;
+  const { name, email, password, phone, role, avatar_url } = req.body;
 
   try {
     if (role === "admin") {
@@ -26,6 +37,12 @@ export const register = async (req, res) => {
     // Validate required fields
     if (!name || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const weakPasswordMessage = getPasswordStrengthError(password);
+
+    if (weakPasswordMessage) {
+      return res.status(400).json({ message: weakPasswordMessage });
     }
 
     const existingUser = await pool.query(
@@ -40,9 +57,9 @@ export const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
-      `INSERT INTO users (name, email, password, phone, role, worker_request_status)
-       VALUES ($1,$2,$3,$4,$5,$6)
-       RETURNING id, name, email, phone, role, worker_request_status`,
+      `INSERT INTO users (name, email, password, phone, role, worker_request_status, avatar_url)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)
+       RETURNING id, name, email, phone, role, worker_request_status, avatar_url`,
       [
         name,
         email,
@@ -50,6 +67,7 @@ export const register = async (req, res) => {
         phone || null,
         role || "user",
         role === "worker" ? "pending" : "none",
+        avatar_url || null,
       ],
     );
 
@@ -86,6 +104,7 @@ export const login = async (req, res) => {
         name: "Admin",
         email: process.env.ADMIN_EMAIL,
         role: "admin",
+        avatar_url: null,
       };
 
       const token = generateToken(adminUser.id, adminUser.role);
@@ -162,7 +181,7 @@ export const getMe = async (req, res) => {
 export const getAllUsers = async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT id, name, email, phone, role, worker_request_status, created_at
+      `SELECT id, name, email, phone, role, avatar_url, worker_request_status, created_at
        FROM users
        ORDER BY created_at DESC`,
     );
@@ -176,20 +195,32 @@ export const getAllUsers = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const { name, phone } = req.body;
+    const { name, phone, avatar_url } = req.body;
+    const hasAvatarUrl = Object.prototype.hasOwnProperty.call(
+      req.body,
+      "avatar_url",
+    );
 
     const result = await pool.query(
       `UPDATE users 
        SET name = COALESCE($1, name),
            phone = COALESCE($2, phone),
+           avatar_url = CASE WHEN $3 THEN $4 ELSE avatar_url END,
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $3
-       RETURNING id, name, email, phone, role`,
-      [name, phone, req.user.id]
+       WHERE id = $5
+       RETURNING id, name, email, phone, role, avatar_url, worker_request_status`,
+      [name, phone, hasAvatarUrl, avatar_url || null, req.user.id],
     );
 
-    res.json(result.rows[0]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
+    const user = result.rows[0];
+    const worker_is_approved =
+      user.role === "worker" ? await getWorkerApprovalStatus(user.id) : false;
+
+    res.json({ ...user, worker_is_approved });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });

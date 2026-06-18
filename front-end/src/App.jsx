@@ -15,6 +15,8 @@ import Profile from "./pages/Profile";
 import Orders from "./pages/Orders";
 import LearnMore from "./pages/LearnMore";
 import Favorites from "./pages/Favorites";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import AppLayout from "./components/AppLayout";
 import "leaflet/dist/leaflet.css";
 
@@ -63,6 +65,8 @@ function App() {
           <Route path="/orders" element={<Orders />} />
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/learnmore" element={<LearnMore />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
         </Route>
       </Routes>
     </BrowserRouter>

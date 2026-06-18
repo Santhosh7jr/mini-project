@@ -45,7 +45,7 @@ export default function Workers() {
             <p>Experience: {worker.experience} years</p>
             <p>Rating: {worker.rating}</p>
             <button
-              className="bg-blue-500 text-white px-3 py-1 mt-2"
+              className="bg-[#0A66C2] text-white px-3 py-1 mt-2"
               onClick={() => handleBooking(worker.id)}
             >
               Book

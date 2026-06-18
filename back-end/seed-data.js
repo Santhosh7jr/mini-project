@@ -132,7 +132,7 @@ async function seedDatabase() {
       const rating = Math.floor(Math.random() * 20) / 4 + 3; // 3.0 to 5.0
       const reviewsCount = Math.floor(Math.random() * 100) + 10;
       const experience = Math.floor(Math.random() * 15) + 1;
-      const price = Math.floor(Math.random() * 3000) + 500;
+      const price = Math.round((Math.floor(Math.random() * 5000) + 500) / 100) * 100;
       const jobsCompleted = Math.floor(Math.random() * 500) + 50;
       const workerIndex = i % 5;
 
@@ -192,7 +192,7 @@ async function seedDatabase() {
           locations[i % locations.length],
           `Service booking request ${i + 1}`,
           randomStatus,
-          Math.floor(Math.random() * 3000) + 500,
+          Math.round((Math.floor(Math.random() * 3000) + 500) / 100) * 100,
         ],
       );
     }

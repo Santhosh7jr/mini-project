@@ -1,5 +1,17 @@
 import pool from "../config/db.js";
 
+const roundPriceToNearestHundred = (price) => {
+  if (price === null || price === undefined || price === "") return price;
+
+  return Math.round(Number(price) / 100) * 100;
+};
+
+const normalizeBookingPrices = (booking) => ({
+  ...booking,
+  price: roundPriceToNearestHundred(booking.price),
+  worker_price: roundPriceToNearestHundred(booking.worker_price),
+});
+
 export const createBooking = async (req, res) => {
   const user_id = req.user.id;
   const {
@@ -29,11 +41,11 @@ export const createBooking = async (req, res) => {
         booking_time || null,
         location || null,
         description || null,
-        price || null,
+        price ? roundPriceToNearestHundred(price) : null,
       ],
     );
 
-    res.status(201).json(result.rows[0]);
+    res.status(201).json(normalizeBookingPrices(result.rows[0]));
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "server error" });
@@ -50,10 +62,14 @@ export const getUserBookings = async (req, res) => {
         w.price as worker_price,
         w.image as worker_image,
         w.rating,
+        r.id as review_id,
+        r.rating as review_rating,
+        r.comment as review_comment,
         COALESCE(u.name, 'Unknown Worker') AS worker_name,
         s.name as service_name
       FROM bookings b
       LEFT JOIN workers w ON b.worker_id = w.id
+      LEFT JOIN reviews r ON r.booking_id = b.id AND r.user_id = b.user_id
       LEFT JOIN users u ON w.user_id = u.id
       LEFT JOIN services s ON b.service_id = s.id
       WHERE b.user_id = $1
@@ -63,7 +79,7 @@ export const getUserBookings = async (req, res) => {
 
     console.log("User bookings found:", result.rows.length);
 
-    res.json(result.rows);
+    res.json(result.rows.map(normalizeBookingPrices));
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -202,7 +218,7 @@ export const getBookingDetails = async (req, res) => {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
-    res.json(booking);
+    res.json(normalizeBookingPrices(booking));
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });

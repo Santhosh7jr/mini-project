@@ -41,13 +41,13 @@ export default function Services() {
   }, []);
 
   return (
-    <div className="bg-[#28364D] min-h-screen px-6 py-16">
+    <div className="bg-[#E9E5DF] min-h-screen px-6 py-16">
       {/* HEADER */}
       <div className="text-center mb-16">
-        <h1 className="text-4xl md:text-5xl font-bold text-[#EEF1F6] mb-3">
+        <h1 className="text-4xl md:text-5xl font-bold text-[#191919] mb-3">
           Our Services
         </h1>
-        <p className="text-[#B2C0D7] text-lg max-w-2xl mx-auto">
+        <p className="text-[#666666] text-lg max-w-2xl mx-auto">
           Professional services from trusted experts. Browse our comprehensive
           range of offerings.
         </p>
@@ -63,18 +63,18 @@ export default function Services() {
               key={service.id}
               className="
                 group
-                bg-[#384B6B]
-                border border-[#5875A7]
+                bg-[#FFFFFF]
+                border border-[#D0D7DE]
                 rounded-2xl overflow-hidden
                 transition duration-300
-                hover:border-[#7A3FE0]
+                hover:border-[#0A66C2]
                 hover:shadow-2xl
                 hover:-translate-y-2
                 flex flex-col h-full
               "
             >
               {/* IMAGE CONTAINER */}
-              <div className="relative w-full h-64 overflow-hidden bg-[#486089]">
+              <div className="relative w-full h-64 overflow-hidden bg-[#EAF4FD]">
                 <img
                   src={image}
                   alt={service.name}
@@ -84,22 +84,22 @@ export default function Services() {
                     group-hover:scale-110
                   "
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#28364D] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-300"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-[#E9E5DF] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-300"></div>
               </div>
 
               {/* CONTENT */}
               <div className="p-6 flex-1 flex flex-col">
-                <h2 className="text-2xl font-bold text-[#EEF1F6] mb-3">
+                <h2 className="text-2xl font-bold text-[#191919] mb-3">
                   {service.name}
                 </h2>
 
-                <p className="text-[#B2C0D7] text-sm mb-4 flex-1">
+                <p className="text-[#666666] text-sm mb-4 flex-1">
                   {service.description ||
                     "Professional service tailored to your needs"}
                 </p>
 
                 {/* FEATURES */}
-                <ul className="grid grid-cols-1 gap-2 text-sm text-[#B2C0D7] mb-5">
+                <ul className="grid grid-cols-1 gap-2 text-sm text-[#666666] mb-5">
                   {(
                     service.features || [
                       "Verified professionals",
@@ -111,29 +111,29 @@ export default function Services() {
                     .slice(0, 3)
                     .map((item, i) => (
                       <li key={i} className="flex items-center gap-2">
-                        <span className="text-[#7A3FE0] font-bold">✓</span>
+                        <span className="text-[#0A66C2] font-bold">✓</span>
                         <span>{item}</span>
                       </li>
                     ))}
                 </ul>
 
                 {/* STATS */}
-                <div className="grid grid-cols-3 gap-3 mb-5 text-center py-3 border-y border-[#486089]">
+                <div className="grid grid-cols-3 gap-3 mb-5 text-center py-3 border-y border-[#D0D7DE]">
                   <div>
-                    <p className="text-[#7A3FE0] font-bold text-lg">⭐</p>
-                    <p className="text-[#EEF1F6] text-xs font-medium">
+                    <p className="text-[#0A66C2] font-bold text-lg">⭐</p>
+                    <p className="text-[#191919] text-xs font-medium">
                       {service.rating || "4.5"}
                     </p>
                   </div>
                   <div>
-                    <p className="text-[#7A3FE0] font-bold text-lg">👥</p>
-                    <p className="text-[#EEF1F6] text-xs font-medium">
+                    <p className="text-[#0A66C2] font-bold text-lg">👥</p>
+                    <p className="text-[#191919] text-xs font-medium">
                       {service.count || "100+"}
                     </p>
                   </div>
                   <div>
-                    <p className="text-[#7A3FE0] font-bold text-lg">₹</p>
-                    <p className="text-[#EEF1F6] text-xs font-medium">
+                    <p className="text-[#0A66C2] font-bold text-lg">₹</p>
+                    <p className="text-[#191919] text-xs font-medium">
                       {service.price || "500+"}
                     </p>
                   </div>
@@ -144,9 +144,9 @@ export default function Services() {
                   onClick={() => navigate(`/find-workers/${service.id}`)}
                   className="
                     w-full
-                    bg-gradient-to-r from-[#7A3FE0] to-[#5875A7]
+                    bg-gradient-to-r from-[#0A66C2] to-[#004182]
                     text-white font-semibold py-3 px-4 rounded-lg
-                    hover:from-[#9D5BFF] hover:to-[#7A94B8]
+                    hover:from-[#004182] hover:to-[#004182]
                     hover:shadow-lg
                     transition duration-200
                     transform
@@ -163,51 +163,51 @@ export default function Services() {
       {/* WHY SECTION */}
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-[#EEF1F6] mb-3">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#191919] mb-3">
             Why Choose Karigo?
           </h2>
-          <p className="text-[#B2C0D7] text-lg">
+          <p className="text-[#666666] text-lg">
             Experience the difference with our platform
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-[#384B6B] border border-[#5875A7] rounded-xl p-8 text-center hover:border-[#7A3FE0] transition group cursor-pointer hover:-translate-y-1">
+          <div className="bg-[#FFFFFF] border border-[#D0D7DE] rounded-xl p-8 text-center hover:border-[#0A66C2] transition group cursor-pointer hover:-translate-y-1">
             <div className="text-5xl mb-4 group-hover:scale-110 transition">
               ✔️
             </div>
-            <p className="text-white font-bold text-lg mb-2">Verified</p>
-            <p className="text-[#B2C0D7] text-sm">
+            <p className="text-[#191919] font-bold text-lg mb-2">Verified</p>
+            <p className="text-[#666666] text-sm">
               All professionals are thoroughly verified and vetted
             </p>
           </div>
 
-          <div className="bg-[#384B6B] border border-[#5875A7] rounded-xl p-8 text-center hover:border-[#7A3FE0] transition group cursor-pointer hover:-translate-y-1">
+          <div className="bg-[#FFFFFF] border border-[#D0D7DE] rounded-xl p-8 text-center hover:border-[#0A66C2] transition group cursor-pointer hover:-translate-y-1">
             <div className="text-5xl mb-4 group-hover:scale-110 transition">
               ⭐
             </div>
-            <p className="text-white font-bold text-lg mb-2">Quality</p>
-            <p className="text-[#B2C0D7] text-sm">
+            <p className="text-[#191919] font-bold text-lg mb-2">Quality</p>
+            <p className="text-[#666666] text-sm">
               Guaranteed quality service with proven track records
             </p>
           </div>
 
-          <div className="bg-[#384B6B] border border-[#5875A7] rounded-xl p-8 text-center hover:border-[#7A3FE0] transition group cursor-pointer hover:-translate-y-1">
+          <div className="bg-[#FFFFFF] border border-[#D0D7DE] rounded-xl p-8 text-center hover:border-[#0A66C2] transition group cursor-pointer hover:-translate-y-1">
             <div className="text-5xl mb-4 group-hover:scale-110 transition">
               🛡️
             </div>
-            <p className="text-white font-bold text-lg mb-2">Secure</p>
-            <p className="text-[#B2C0D7] text-sm">
+            <p className="text-[#191919] font-bold text-lg mb-2">Secure</p>
+            <p className="text-[#666666] text-sm">
               Your data and transactions are completely safe
             </p>
           </div>
 
-          <div className="bg-[#384B6B] border border-[#5875A7] rounded-xl p-8 text-center hover:border-[#7A3FE0] transition group cursor-pointer hover:-translate-y-1">
+          <div className="bg-[#FFFFFF] border border-[#D0D7DE] rounded-xl p-8 text-center hover:border-[#0A66C2] transition group cursor-pointer hover:-translate-y-1">
             <div className="text-5xl mb-4 group-hover:scale-110 transition">
               ⏱️
             </div>
-            <p className="text-white font-bold text-lg mb-2">Fast</p>
-            <p className="text-[#B2C0D7] text-sm">
+            <p className="text-[#191919] font-bold text-lg mb-2">Fast</p>
+            <p className="text-[#666666] text-sm">
               Quick response and booking within minutes
             </p>
           </div>

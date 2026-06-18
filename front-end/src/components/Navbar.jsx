@@ -16,6 +16,7 @@ export default function Navbar() {
   const [user, setUser] = useState(getStoredUser);
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [avatarFailed, setAvatarFailed] = useState(false);
 
   const profileRef = useRef(null);
 
@@ -34,11 +35,27 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const syncUser = () => setUser(getStoredUser());
+
+    window.addEventListener("storage", syncUser);
+    window.addEventListener("user-updated", syncUser);
+
+    return () => {
+      window.removeEventListener("storage", syncUser);
+      window.removeEventListener("user-updated", syncUser);
+    };
+  }, []);
+
+  useEffect(() => {
+    setAvatarFailed(false);
+  }, [user?.avatar_url]);
+
   const navLink = (path) =>
     `px-4 py-2 rounded-lg text-sm font-medium transition ${
       location.pathname === path
-        ? "bg-[#5875A7] text-white"
-        : "text-[#B2C0D7] hover:text-white hover:bg-[#486089]"
+        ? "bg-[#0A66C2] text-white"
+        : "text-[#666666] hover:text-[#0A66C2] hover:bg-[#EAF4FD]"
     }`;
 
   const handleLogout = () => {
@@ -50,18 +67,18 @@ export default function Navbar() {
   // 🔹 NOT LOGGED IN
   if (!user) {
     return (
-      <div className="fixed top-0 left-0 right-0 z-50 bg-[#28364D]/90 backdrop-blur-md border-b border-[#5875A7]/30 px-6 py-2 flex justify-between items-center shadow-lg">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-[#E9E5DF]/90 backdrop-blur-md border-b border-[#D0D7DE]/30 px-6 py-2 flex justify-between items-center shadow-lg">
         <div
           onClick={() => navigate("/")}
-          className="text-white font-bold text-lg cursor-pointer"
+          className="text-[#191919] font-bold text-lg cursor-pointer"
         >
           Karigo
         </div>
         <div className="flex gap-4">
-          <Link to="/login" className="text-[#B2C0D7] hover:text-white">
+          <Link to="/login" className="text-[#666666] hover:text-[#0A66C2]">
             Login
           </Link>
-          <Link to="/register" className="text-[#B2C0D7] hover:text-white">
+          <Link to="/register" className="text-[#666666] hover:text-[#0A66C2]">
             Register
           </Link>
         </div>
@@ -72,16 +89,16 @@ export default function Navbar() {
   return (
     <>
       {/* 🔥 NAVBAR */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-[#28364D]/90 backdrop-blur-md border-b border-[#5875A7]/30 px-6 py-2 flex justify-between items-center shadow-lg">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-[#E9E5DF]/90 backdrop-blur-md border-b border-[#D0D7DE]/30 px-6 py-2 flex justify-between items-center shadow-lg">
         {/* LOGO */}
         <div
           onClick={() => navigate("/")}
           className="flex items-center gap-2 cursor-pointer"
         >
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#7A3FE0] to-[#5875A7] flex items-center justify-center text-white font-bold">
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#0A66C2] to-[#004182] flex items-center justify-center text-white font-bold">
             K
           </div>
-          <span className="text-[#EEF1F6] font-bold text-lg">Karigo</span>
+          <span className="text-[#191919] font-bold text-lg">Karigo</span>
         </div>
 
         {/* DESKTOP NAV */}
@@ -120,7 +137,7 @@ export default function Navbar() {
           {/* MOBILE MENU */}
           <button
             onClick={() => setMobileOpen(true)}
-            className="md:hidden text-xl text-white"
+            className="md:hidden text-xl text-[#191919]"
           >
             ☰
           </button>
@@ -133,21 +150,28 @@ export default function Navbar() {
                 flex items-center gap-2
                 px-3 py-2
                 rounded-lg
-                bg-[#384B6B]
-                border border-[#5875A7]/40
-                hover:bg-[#486089]
+                bg-[#FFFFFF]
+                border border-[#D0D7DE]/40
+                hover:bg-[#EAF4FD]
                 transition
               "
             >
-              <div className="w-8 h-8 rounded-full bg-[#7A3FE0] flex items-center justify-center text-white text-sm font-semibold">
-                {user.name?.charAt(0).toUpperCase()}
-              </div>
+              {user.avatar_url && !avatarFailed ? (
+                <img
+                  src={user.avatar_url}
+                  alt={user.name}
+                  className="w-8 h-8 rounded-full object-cover bg-[#0A66C2]"
+                  onError={() => setAvatarFailed(true)}
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-[#0A66C2] flex items-center justify-center text-white text-sm font-semibold">
+                  {user.name?.charAt(0).toUpperCase()}
+                </div>
+              )}
 
-              <span className="text-sm text-[#EEF1F6] hidden sm:block">
+              <span className="text-sm text-[#191919] hidden sm:block">
                 {user.name?.split(" ")[0]}
               </span>
-
-              <span className="text-xs text-[#B2C0D7]">▼</span>
             </button>
 
             {/* DROPDOWN */}
@@ -155,15 +179,15 @@ export default function Navbar() {
               <div
                 className="
                 absolute right-0 mt-2 w-56
-                bg-[#2E3B55]
-                border border-[#5875A7]/30
+                bg-[#FFFFFF]
+                border border-[#D0D7DE]/30
                 rounded-xl shadow-lg overflow-hidden
-                text-[#EEF1F6]
+                text-[#191919]
               "
               >
-                <div className="px-4 py-3 border-b border-[#5875A7]/20">
+                <div className="px-4 py-3 border-b border-[#D0D7DE]/20">
                   <p className="text-sm font-medium">{user.name}</p>
-                  <p className="text-xs text-[#B2C0D7] truncate">
+                  <p className="text-xs text-[#666666] truncate">
                     {user.email}
                   </p>
                 </div>
@@ -171,7 +195,7 @@ export default function Navbar() {
                 <div className="flex flex-col text-sm">
                   <button
                     onClick={() => navigate("/profile")}
-                    className="px-4 py-2 text-left hover:bg-[#384B6B]"
+                    className="px-4 py-2 text-left hover:bg-[#EAF4FD]"
                   >
                     👤 Profile
                   </button>
@@ -180,14 +204,14 @@ export default function Navbar() {
                     <>
                       <button
                         onClick={() => navigate("/favorites")}
-                        className="px-4 py-2 text-left hover:bg-[#384B6B]"
+                        className="px-4 py-2 text-left hover:bg-[#EAF4FD]"
                       >
                         ❤️ Favorites
                       </button>
 
                       <button
                         onClick={() => navigate("/orders")}
-                        className="px-4 py-2 text-left hover:bg-[#384B6B]"
+                        className="px-4 py-2 text-left hover:bg-[#EAF4FD]"
                       >
                         📦 Orders
                       </button>
@@ -197,7 +221,7 @@ export default function Navbar() {
                   {canAccessWorkerDashboard && (
                     <button
                       onClick={() => navigate("/worker")}
-                      className="px-4 py-2 text-left hover:bg-[#384B6B]"
+                      className="px-4 py-2 text-left hover:bg-[#EAF4FD]"
                     >
                       📊 Dashboard
                     </button>
@@ -206,7 +230,7 @@ export default function Navbar() {
                   {user.role === "admin" && (
                     <button
                       onClick={() => navigate("/admin")}
-                      className="px-4 py-2 text-left hover:bg-[#384B6B]"
+                      className="px-4 py-2 text-left hover:bg-[#EAF4FD]"
                     >
                       🛡️ Admin Panel
                     </button>
@@ -214,7 +238,7 @@ export default function Navbar() {
 
                   <button
                     onClick={handleLogout}
-                    className="px-4 py-2 text-left text-red-400 border-t border-[#5875A7]/20 hover:bg-red-500/10"
+                    className="px-4 py-2 text-left text-[#B24020] border-t border-[#D0D7DE]/20 hover:bg-[#FDE7E9]"
                   >
                     🚪 Logout
                   </button>
@@ -233,10 +257,10 @@ export default function Navbar() {
             onClick={() => setMobileOpen(false)}
           />
 
-          <div className="w-64 bg-[#384B6B] p-6 border-l border-[#5875A7]/30">
-            <div className="mb-6 text-white font-bold text-lg">Menu</div>
+          <div className="w-64 bg-[#FFFFFF] p-6 border-l border-[#D0D7DE]/30">
+            <div className="mb-6 text-[#191919] font-bold text-lg">Menu</div>
 
-            <div className="flex flex-col gap-3 text-[#EEF1F6]">
+            <div className="flex flex-col gap-3 text-[#191919]">
               <Link to="/" onClick={() => setMobileOpen(false)}>
                 Home
               </Link>

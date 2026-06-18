@@ -1,10 +1,24 @@
 import pool from "../config/db.js";
 
+const roundPriceToNearestHundred = (price) => {
+  if (price === null || price === undefined || price === "") return price;
+
+  return Math.round(Number(price) / 100) * 100;
+};
+
+const normalizeWorkerPrice = (worker) => ({
+  ...worker,
+  price: roundPriceToNearestHundred(worker.price),
+});
+
 export const createWorkerProfile = async (req, res) => {
   const user_id = req.user.id;
 
   const { service_id, image, price, location, description, experience } =
     req.body;
+  const defaultWorkerImage = `/src/assets/workers/worker${
+    ((Number(user_id) - 1) % 5) + 1
+  }.svg`;
 
   try {
     if (!service_id || !price) {
@@ -12,7 +26,7 @@ export const createWorkerProfile = async (req, res) => {
     }
 
     const user = await pool.query(
-      "SELECT role, worker_request_status FROM users WHERE id = $1",
+      "SELECT role, worker_request_status, avatar_url FROM users WHERE id = $1",
       [user_id],
     );
 
@@ -33,6 +47,7 @@ export const createWorkerProfile = async (req, res) => {
     }
 
     const isApproved = user.rows[0].worker_request_status === "approved";
+    const workerImage = image || user.rows[0].avatar_url || defaultWorkerImage;
 
     const result = await pool.query(
       `INSERT INTO workers (user_id, service_id, image, price, location, description, experience, is_approved) 
@@ -41,8 +56,8 @@ export const createWorkerProfile = async (req, res) => {
       [
         user_id,
         service_id,
-        image || null,
-        price,
+        workerImage,
+        roundPriceToNearestHundred(price),
         location || null,
         description || null,
         experience || 0,
@@ -50,7 +65,7 @@ export const createWorkerProfile = async (req, res) => {
       ],
     );
 
-    res.status(201).json(result.rows[0]);
+    res.status(201).json(normalizeWorkerPrice(result.rows[0]));
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -62,9 +77,21 @@ export const getWorkerProfile = async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT w.*, u.name, u.email, u.phone 
+      `SELECT
+         w.*,
+         COALESCE(
+           w.image,
+           u.avatar_url,
+           '/src/assets/workers/worker' || ((((u.id - 1) % 5) + 1)::text) || '.svg'
+         ) AS image,
+         u.name,
+         u.email,
+         u.phone,
+         u.avatar_url,
+         s.name as service_name
        FROM workers w 
        JOIN users u ON w.user_id = u.id 
+       LEFT JOIN services s ON w.service_id = s.id
        WHERE w.id = $1`,
       [workerId],
     );
@@ -73,7 +100,7 @@ export const getWorkerProfile = async (req, res) => {
       return res.status(404).json({ message: "Worker not found" });
     }
 
-    res.json(result.rows[0]);
+    res.json(normalizeWorkerPrice(result.rows[0]));
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -119,7 +146,7 @@ export const updateWorkerProfile = async (req, res) => {
        RETURNING *`,
       [
         image,
-        price,
+        price === undefined ? price : roundPriceToNearestHundred(price),
         location,
         description,
         experience,
@@ -132,7 +159,7 @@ export const updateWorkerProfile = async (req, res) => {
       return res.status(404).json({ message: "Worker not found" });
     }
 
-    res.json(result.rows[0]);
+    res.json(normalizeWorkerPrice(result.rows[0]));
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -144,7 +171,16 @@ export const getWorkersByServices = async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT w.*, u.name, s.name as service_name
+      `SELECT
+         w.*,
+         COALESCE(
+           w.image,
+           u.avatar_url,
+           '/src/assets/workers/worker' || ((((u.id - 1) % 5) + 1)::text) || '.svg'
+         ) AS image,
+         u.name,
+         u.avatar_url,
+         s.name as service_name
        FROM workers w 
        JOIN users u ON w.user_id = u.id 
        LEFT JOIN services s ON w.service_id = s.id
@@ -152,7 +188,7 @@ export const getWorkersByServices = async (req, res) => {
        ORDER BY w.rating DESC`,
       [serviceId],
     );
-    res.json(result.rows);
+    res.json(result.rows.map(normalizeWorkerPrice));
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "server error" });
@@ -162,14 +198,23 @@ export const getWorkersByServices = async (req, res) => {
 export const getAllWorkers = async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT w.*, u.name, s.name as service_name
+      `SELECT
+        w.*,
+        COALESCE(
+          w.image,
+          u.avatar_url,
+          '/src/assets/workers/worker' || ((((u.id - 1) % 5) + 1)::text) || '.svg'
+        ) AS image,
+        u.name,
+        u.avatar_url,
+        s.name as service_name
       FROM workers w 
       JOIN users u ON w.user_id = u.id
       LEFT JOIN services s ON w.service_id = s.id
       ORDER BY w.rating DESC`,
     );
 
-    res.json(result.rows);
+    res.json(result.rows.map(normalizeWorkerPrice));
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -185,6 +230,7 @@ export const getPendingWorkers = async (req, res) => {
         u.email,
         u.phone,
         u.role,
+        u.avatar_url,
         u.worker_request_status,
         u.created_at
        FROM users u
@@ -208,7 +254,7 @@ export const approveWorker = async (req, res) => {
       `UPDATE users
        SET worker_request_status = 'approved'
        WHERE id = $1 AND role = 'worker'
-       RETURNING id, name, email, role, worker_request_status`,
+       RETURNING id, name, email, role, avatar_url, worker_request_status`,
       [userId],
     );
 
@@ -253,7 +299,7 @@ export const deleteWorker = async (req, res) => {
        SET role = 'user',
            worker_request_status = 'rejected'
        WHERE id = $1
-       RETURNING id, name, email, role, worker_request_status`,
+       RETURNING id, name, email, role, avatar_url, worker_request_status`,
       [userId],
     );
 

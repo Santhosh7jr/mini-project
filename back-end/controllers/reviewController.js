@@ -6,18 +6,46 @@ export const createReview = async (req, res) => {
   const { worker_id, booking_id, rating, comment } = req.body;
 
   try {
-    if (!worker_id || !rating) {
+    if (!worker_id || !booking_id || !rating) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    if (rating < 1 || rating > 5) {
+    const numericRating = Number(rating);
+
+    if (numericRating < 1 || numericRating > 5) {
       return res
         .status(400)
         .json({ message: "Rating must be between 1 and 5" });
     }
 
+    const booking = await pool.query(
+      `SELECT id, user_id, worker_id, status
+       FROM bookings
+       WHERE id = $1`,
+      [booking_id],
+    );
+
+    if (booking.rows.length === 0) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    const bookingRow = booking.rows[0];
+
+    if (
+      String(bookingRow.user_id) !== String(user_id) ||
+      String(bookingRow.worker_id) !== String(worker_id)
+    ) {
+      return res.status(403).json({ message: "Unauthorized review" });
+    }
+
+    if (bookingRow.status !== "completed") {
+      return res
+        .status(400)
+        .json({ message: "You can rate a worker only after the work is completed" });
+    }
+
     const existing = await pool.query(
-      `SELECT * FROM reviews WHERE user_id=$1 AND booking_id=$2`,
+      `SELECT id FROM reviews WHERE user_id = $1 AND booking_id = $2`,
       [user_id, booking_id],
     );
 
@@ -31,7 +59,7 @@ export const createReview = async (req, res) => {
       `INSERT INTO reviews (user_id, worker_id, booking_id, rating, comment) 
        VALUES ($1, $2, $3, $4, $5) 
        RETURNING *`,
-      [user_id, worker_id, booking_id || null, rating, comment || null],
+      [user_id, worker_id, booking_id, numericRating, comment || null],
     );
 
     // Update worker rating

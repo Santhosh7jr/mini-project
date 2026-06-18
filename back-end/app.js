@@ -18,6 +18,11 @@ const ensureWorkerRequestStatusColumn = async () => {
   try {
     await pool.query(`
       ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS avatar_url VARCHAR(255)
+    `);
+
+    await pool.query(`
+      ALTER TABLE users
       ADD COLUMN IF NOT EXISTS worker_request_status VARCHAR(20) DEFAULT 'none'
       CHECK (worker_request_status IN ('none', 'pending', 'approved', 'rejected'))
     `);

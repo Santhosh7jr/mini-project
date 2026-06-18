@@ -59,26 +59,26 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="bg-[#28364D] min-h-screen px-6 py-16">
+    <div className="bg-[#E9E5DF] min-h-screen px-6 py-16">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-10">
-          <h1 className="text-3xl md:text-4xl font-bold text-[#EEF1F6]">
+          <h1 className="text-3xl md:text-4xl font-bold text-[#191919]">
             🛡️ Admin Panel
           </h1>
-          <p className="text-[#B2C0D7] mt-2">
+          <p className="text-[#666666] mt-2">
             Manage users and worker approvals
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="flex flex-wrap gap-4 mb-8 border-b border-[#5875A7]">
+        <div className="flex flex-wrap gap-4 mb-8 border-b border-[#D0D7DE]">
           <button
             onClick={() => setTab("users")}
             className={`px-4 py-3 font-semibold transition ${
               tab === "users"
-                ? "border-b-2 border-[#7A3FE0] text-[#7A3FE0]"
-                : "text-[#B2C0D7] hover:text-[#EEF1F6]"
+                ? "border-b-2 border-[#0A66C2] text-[#0A66C2]"
+                : "text-[#666666] hover:text-[#191919]"
             }`}
           >
             👥 Registered Users ({registeredUsers.length})
@@ -87,8 +87,8 @@ export default function AdminDashboard() {
             onClick={() => setTab("pending")}
             className={`px-4 py-3 font-semibold transition ${
               tab === "pending"
-                ? "border-b-2 border-[#7A3FE0] text-[#7A3FE0]"
-                : "text-[#B2C0D7] hover:text-[#EEF1F6]"
+                ? "border-b-2 border-[#0A66C2] text-[#0A66C2]"
+                : "text-[#666666] hover:text-[#191919]"
             }`}
           >
             📋 Pending Approvals ({pendingWorkers.length})
@@ -97,8 +97,8 @@ export default function AdminDashboard() {
             onClick={() => setTab("approved")}
             className={`px-4 py-3 font-semibold transition ${
               tab === "approved"
-                ? "border-b-2 border-[#7A3FE0] text-[#7A3FE0]"
-                : "text-[#B2C0D7] hover:text-[#EEF1F6]"
+                ? "border-b-2 border-[#0A66C2] text-[#0A66C2]"
+                : "text-[#666666] hover:text-[#191919]"
             }`}
           >
             ✓ Approved Workers ({approvedWorkers.length})
@@ -106,42 +106,42 @@ export default function AdminDashboard() {
         </div>
 
         {loading ? (
-          <div className="text-center text-[#B2C0D7]">Loading...</div>
+          <div className="text-center text-[#666666]">Loading...</div>
         ) : tab === "users" ? (
           <div>
             {registeredUsers.length === 0 ? (
-              <div className="bg-[#384B6B] rounded-2xl border border-[#5875A7] p-12 text-center">
-                <p className="text-[#B2C0D7] text-lg">No users registered yet</p>
+              <div className="bg-[#FFFFFF] rounded-2xl border border-[#D0D7DE] p-12 text-center">
+                <p className="text-[#666666] text-lg">No users registered yet</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {registeredUsers.map((user) => (
                   <div
                     key={user.id}
-                    className="bg-[#384B6B] rounded-xl border border-[#5875A7]/40 p-6 hover:border-[#7A3FE0] transition"
+                    className="bg-[#FFFFFF] rounded-xl border border-[#D0D7DE]/40 p-6 hover:border-[#0A66C2] transition"
                   >
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                       <div>
-                        <p className="text-[#B2C0D7] text-xs">Name</p>
-                        <p className="text-[#EEF1F6] font-semibold">
+                        <p className="text-[#666666] text-xs">Name</p>
+                        <p className="text-[#191919] font-semibold">
                           {user.name}
                         </p>
                       </div>
                       <div>
-                        <p className="text-[#B2C0D7] text-xs">Email</p>
-                        <p className="text-[#EEF1F6]">{user.email}</p>
+                        <p className="text-[#666666] text-xs">Email</p>
+                        <p className="text-[#191919]">{user.email}</p>
                       </div>
                       <div>
-                        <p className="text-[#B2C0D7] text-xs">Phone</p>
-                        <p className="text-[#EEF1F6]">{user.phone || "N/A"}</p>
+                        <p className="text-[#666666] text-xs">Phone</p>
+                        <p className="text-[#191919]">{user.phone || "N/A"}</p>
                       </div>
                       <div>
-                        <p className="text-[#B2C0D7] text-xs">Role</p>
-                        <p className="text-[#EEF1F6] capitalize">{user.role}</p>
+                        <p className="text-[#666666] text-xs">Role</p>
+                        <p className="text-[#191919] capitalize">{user.role}</p>
                       </div>
                       <div>
-                        <p className="text-[#B2C0D7] text-xs">Request</p>
-                        <p className="text-[#EEF1F6] capitalize">
+                        <p className="text-[#666666] text-xs">Request</p>
+                        <p className="text-[#191919] capitalize">
                           {user.worker_request_status || "none"}
                         </p>
                       </div>
@@ -155,8 +155,8 @@ export default function AdminDashboard() {
           // PENDING WORKERS
           <div>
             {pendingWorkers.length === 0 ? (
-              <div className="bg-[#384B6B] rounded-2xl border border-[#5875A7] p-12 text-center">
-                <p className="text-[#B2C0D7] text-lg">
+              <div className="bg-[#FFFFFF] rounded-2xl border border-[#D0D7DE] p-12 text-center">
+                <p className="text-[#666666] text-lg">
                   ✓ No pending applications
                 </p>
               </div>
@@ -165,34 +165,34 @@ export default function AdminDashboard() {
                 {pendingWorkers.map((worker) => (
                   <div
                     key={worker.id}
-                    className="bg-[#384B6B] rounded-xl border border-yellow-500/30 p-6 hover:border-[#7A3FE0] transition"
+                    className="bg-[#FFFFFF] rounded-xl border border-[#E9D08A] p-6 hover:border-[#0A66C2] transition"
                   >
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                       {/* Worker Info */}
                       <div className="flex-1">
-                        <h2 className="text-lg font-semibold text-[#EEF1F6]">
+                        <h2 className="text-lg font-semibold text-[#191919]">
                           👤 {worker.name}
                         </h2>
                         <div className="grid grid-cols-2 gap-4 mt-3 text-sm">
                           <div>
-                            <p className="text-[#B2C0D7] text-xs">Email</p>
-                            <p className="text-[#EEF1F6]">{worker.email}</p>
+                            <p className="text-[#666666] text-xs">Email</p>
+                            <p className="text-[#191919]">{worker.email}</p>
                           </div>
                           <div>
-                            <p className="text-[#B2C0D7] text-xs">Phone</p>
-                            <p className="text-[#EEF1F6]">
+                            <p className="text-[#666666] text-xs">Phone</p>
+                            <p className="text-[#191919]">
                               {worker.phone || "N/A"}
                             </p>
                           </div>
                           <div className="col-span-2">
-                            <p className="text-[#B2C0D7] text-xs">Applied On</p>
-                            <p className="text-[#EEF1F6]">
+                            <p className="text-[#666666] text-xs">Applied On</p>
+                            <p className="text-[#191919]">
                               {new Date(worker.created_at).toLocaleDateString()}
                             </p>
                           </div>
                           <div className="col-span-2">
-                            <p className="text-[#B2C0D7] text-xs">Status</p>
-                            <span className="inline-flex mt-1 items-center px-3 py-1 rounded-full text-xs font-semibold bg-yellow-500/20 text-yellow-300 border border-yellow-500/30">
+                            <p className="text-[#666666] text-xs">Status</p>
+                            <span className="inline-flex mt-1 items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#FFF4CE] text-[#915907] border border-[#E9D08A]">
                               pending
                             </span>
                           </div>
@@ -203,13 +203,13 @@ export default function AdminDashboard() {
                       <div className="flex gap-2 flex-wrap md:flex-nowrap">
                         <button
                           onClick={() => approveWorker(worker.id)}
-                          className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold transition"
+                          className="flex-1 bg-[#057642] hover:bg-[#004B1C] text-white px-4 py-2 rounded-lg font-semibold transition"
                         >
                           ✓ Approve
                         </button>
                         <button
                           onClick={() => rejectWorker(worker.id)}
-                          className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition"
+                          className="flex-1 bg-[#B24020] hover:bg-[#8F2C14] text-white px-4 py-2 rounded-lg font-semibold transition"
                         >
                           ✕ Reject
                         </button>
@@ -224,8 +224,8 @@ export default function AdminDashboard() {
           // APPROVED WORKERS
           <div>
             {approvedWorkers.length === 0 ? (
-              <div className="bg-[#384B6B] rounded-2xl border border-[#5875A7] p-12 text-center">
-                <p className="text-[#B2C0D7] text-lg">
+              <div className="bg-[#FFFFFF] rounded-2xl border border-[#D0D7DE] p-12 text-center">
+                <p className="text-[#666666] text-lg">
                   No approved workers yet
                 </p>
               </div>
@@ -234,30 +234,30 @@ export default function AdminDashboard() {
                 {approvedWorkers.map((worker) => (
                   <div
                     key={worker.id}
-                    className="bg-[#384B6B] rounded-xl border border-green-500/30 p-6 hover:border-[#7A3FE0] transition"
+                    className="bg-[#FFFFFF] rounded-xl border border-[#B6E2C5] p-6 hover:border-[#0A66C2] transition"
                   >
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                       {/* Worker Info */}
                       <div className="flex-1">
-                        <h2 className="text-lg font-semibold text-[#EEF1F6]">
+                        <h2 className="text-lg font-semibold text-[#191919]">
                           👷 {worker.name}
                         </h2>
                         <div className="grid grid-cols-3 gap-4 mt-3 text-sm">
                           <div>
-                            <p className="text-[#B2C0D7]">Experience</p>
-                            <p className="text-[#EEF1F6] font-semibold">
+                            <p className="text-[#666666]">Experience</p>
+                            <p className="text-[#191919] font-semibold">
                               {worker.experience || 0} years
                             </p>
                           </div>
                           <div>
-                            <p className="text-[#B2C0D7]">Rating</p>
-                            <p className="text-[#EEF1F6] font-semibold">
+                            <p className="text-[#666666]">Rating</p>
+                            <p className="text-[#191919] font-semibold">
                               ⭐ {worker.rating || 4.5}
                             </p>
                           </div>
                           <div>
-                            <p className="text-[#B2C0D7]">Status</p>
-                            <p className="text-green-400 font-semibold">
+                            <p className="text-[#666666]">Status</p>
+                            <p className="text-[#057642] font-semibold">
                               ✓ Active
                             </p>
                           </div>

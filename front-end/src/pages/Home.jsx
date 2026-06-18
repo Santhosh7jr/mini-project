@@ -73,17 +73,17 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="bg-[#28364D] min-h-screen pt-16">
+    <div className="bg-[#E9E5DF] min-h-screen pt-16">
       {/* 🔥 ROLE BASED HEADER */}
       {user && (
-        <div className="bg-[#28364D] px-6 pt-6 pb-4 max-w-7xl mx-auto">
+        <div className="bg-[#E9E5DF] px-6 pt-6 pb-4 max-w-7xl mx-auto">
           {/* USER */}
           {user.role === "user" && (
             <>
-              <h1 className="text-3xl font-bold text-white">
+              <h1 className="text-3xl font-bold text-[#191919]">
                 Welcome, {user.name}
               </h1>
-              <p className="text-[#B2C0D7] mt-2">
+              <p className="text-[#666666] mt-2">
                 Find trusted professionals for your needs
               </p>
             </>
@@ -91,18 +91,18 @@ export default function Home() {
 
           {/* WORKER */}
           {canAccessWorkerDashboard && (
-            <div className="bg-[#384B6B] p-6 rounded-xl border border-[#5875A7] mb-6">
-              <h2 className="text-xl text-white mb-2">Worker Dashboard</h2>
-              <p className="text-[#B2C0D7]">
+            <div className="bg-[#FFFFFF] p-6 rounded-xl border border-[#D0D7DE] mb-6">
+              <h2 className="text-xl text-[#191919] mb-2">Worker Dashboard</h2>
+              <p className="text-[#666666]">
                 Total Bookings:{" "}
-                <span className="text-[#EEF1F6] font-semibold">
+                <span className="text-[#191919] font-semibold">
                   {stats.totalBookings || 0}
                 </span>
               </p>
 
               <button
                 onClick={() => navigate("/worker")}
-                className="mt-4 bg-[#7A3FE0] px-5 py-2 rounded-lg"
+                className="mt-4 bg-[#0A66C2] text-white px-5 py-2 rounded-lg"
               >
                 Go to Dashboard
               </button>
@@ -111,18 +111,18 @@ export default function Home() {
 
           {/* ADMIN */}
           {user.role === "admin" && (
-            <div className="bg-[#384B6B] p-6 rounded-xl border border-[#5875A7] mb-6">
-              <h2 className="text-xl text-white mb-2">Admin Overview</h2>
-              <p className="text-[#B2C0D7]">
+            <div className="bg-[#FFFFFF] p-6 rounded-xl border border-[#D0D7DE] mb-6">
+              <h2 className="text-xl text-[#191919] mb-2">Admin Overview</h2>
+              <p className="text-[#666666]">
                 Total Workers:{" "}
-                <span className="text-[#EEF1F6] font-semibold">
+                <span className="text-[#191919] font-semibold">
                   {stats.totalWorkers || 0}
                 </span>
               </p>
 
               <button
                 onClick={() => navigate("/admin")}
-                className="mt-4 bg-[#7A3FE0] px-5 py-2 rounded-lg"
+                className="mt-4 bg-[#0A66C2] text-white px-5 py-2 rounded-lg"
               >
                 Open Admin Panel
               </button>
@@ -132,12 +132,12 @@ export default function Home() {
       )}
 
       {/* HERO */}
-      <div className="bg-[#384B6B] text-[#EEF1F6] py-28 px-6 text-center">
+      <div className="bg-[#FFFFFF] text-[#191919] py-28 px-6 text-center">
         <h1 className="text-4xl md:text-5xl font-semibold mb-6">
           Find Your Perfect Service
         </h1>
 
-        <p className="text-[#B2C0D7] max-w-xl mx-auto mb-10 text-lg">
+        <p className="text-[#666666] max-w-xl mx-auto mb-10 text-lg">
           Connect with verified professionals near you. Fast, reliable, and
           hassle-free.
         </p>
@@ -145,14 +145,14 @@ export default function Home() {
         <div className="flex justify-center gap-4 flex-wrap">
           <button
             onClick={() => navigate("/services")}
-            className="bg-[#EEF1F6] text-[#28364D] px-6 py-2 rounded-full"
+            className="bg-[#0A66C2] text-white px-6 py-2 rounded-full"
           >
             Browse Services
           </button>
 
           <button
             onClick={() => navigate("/learnmore")}
-            className="border border-[#5875A7] px-6 py-2 rounded-full"
+            className="border border-[#0A66C2] text-[#0A66C2] px-6 py-2 rounded-full"
           >
             Learn More
           </button>
@@ -161,20 +161,20 @@ export default function Home() {
 
       {/* SERVICES */}
       <div className="py-16 px-6 max-w-7xl mx-auto">
-        <h2 className="text-2xl text-white mb-6">Services</h2>
+        <h2 className="text-2xl text-[#191919] mb-6">Services</h2>
 
         {loading ? (
-          <div className="text-white">Loading...</div>
+          <div className="text-[#191919]">Loading...</div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {services.map((s) => (
               <button
                 key={s.id}
                 onClick={() => navigate(`/find-workers/${s.id}`)}
-                className="bg-[#384B6B] p-6 rounded-xl"
+                className="bg-[#FFFFFF] p-6 rounded-xl"
               >
                 <img src={serviceImages[s.id]} className="w-12 mx-auto mb-2" />
-                <h3 className="text-white text-center">{s.name}</h3>
+                <h3 className="text-[#191919] text-center">{s.name}</h3>
               </button>
             ))}
           </div>
@@ -183,7 +183,7 @@ export default function Home() {
 
       {/* TOP WORKERS */}
       <div className="py-20 px-6 max-w-7xl mx-auto">
-        <h2 className="text-2xl text-white mb-8">⭐ Top Workers</h2>
+        <h2 className="text-2xl text-[#191919] mb-8">⭐ Top Workers</h2>
 
         <div className="grid md:grid-cols-3 gap-8">
           {topWorkers.map((worker) => (

@@ -3,6 +3,7 @@ import API from "../api/axios";
 
 const emptyProfileForm = {
   service_id: "",
+  image: "",
   price: "500",
   location: "",
   description: "",
@@ -21,7 +22,7 @@ export default function WorkerDashboard() {
   const [profileError, setProfileError] = useState("");
 
   const inputClass =
-    "w-full bg-[#0f172a] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#7A3FE0]";
+    "w-full bg-[#E9E5DF] border border-[#D0D7DE] rounded-lg px-4 py-3 text-[#191919] focus:outline-none focus:border-[#0A66C2]";
 
   const loadServices = useCallback(async () => {
     try {
@@ -97,6 +98,7 @@ export default function WorkerDashboard() {
 
       await API.post("/workers", {
         service_id: Number(profileForm.service_id),
+        image: profileForm.image.trim() || null,
         price: Number(profileForm.price),
         location: profileForm.location.trim() || null,
         description: profileForm.description.trim() || null,
@@ -135,13 +137,13 @@ export default function WorkerDashboard() {
 
     switch (status) {
       case "pending":
-        return `${base} bg-yellow-500/20 text-yellow-400`;
+        return `${base} bg-[#FFF4CE] text-[#915907]`;
       case "accepted":
-        return `${base} bg-green-500/20 text-green-400`;
+        return `${base} bg-[#E6F4EA] text-[#057642]`;
       case "completed":
-        return `${base} bg-blue-500/20 text-blue-400`;
+        return `${base} bg-[#EAF4FD] text-[#0A66C2]`;
       case "rejected":
-        return `${base} bg-red-500/20 text-red-400`;
+        return `${base} bg-[#FDE7E9] text-[#B24020]`;
       default:
         return base;
     }
@@ -149,7 +151,7 @@ export default function WorkerDashboard() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen text-white text-lg">
+      <div className="flex justify-center items-center h-screen text-[#191919] text-lg">
         Loading dashboard...
       </div>
     );
@@ -157,27 +159,27 @@ export default function WorkerDashboard() {
 
   if (profileMissing) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#1e293b] to-[#0f172a] px-6 py-12">
+      <div className="min-h-screen bg-gradient-to-br from-[#E9E5DF] to-[#EAF4FD] px-6 py-12">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-white">Worker Dashboard</h1>
-            <p className="text-gray-400 mt-2">
+            <h1 className="text-4xl font-bold text-[#191919]">Worker Dashboard</h1>
+            <p className="text-[#666666] mt-2">
               Complete your worker profile before managing bookings.
             </p>
           </div>
 
           <form
             onSubmit={handleCreateProfile}
-            className="bg-[#1e293b] border border-gray-700 rounded-xl p-6 shadow-md space-y-5"
+            className="bg-[#FFFFFF] border border-[#D0D7DE] rounded-xl p-6 shadow-md space-y-5"
           >
             {profileError && (
-              <div className="bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 rounded-lg text-sm">
+              <div className="bg-[#FDE7E9] border border-[#F4B8B2] text-[#B24020] px-4 py-3 rounded-lg text-sm">
                 {profileError}
               </div>
             )}
 
             <div>
-              <label className="block text-gray-300 text-sm font-medium mb-2">
+              <label className="block text-[#666666] text-sm font-medium mb-2">
                 Service
               </label>
               <select
@@ -199,9 +201,23 @@ export default function WorkerDashboard() {
               </select>
             </div>
 
+            <div>
+              <label className="block text-[#666666] text-sm font-medium mb-2">
+                Profile Picture URL
+              </label>
+              <input
+                type="url"
+                name="image"
+                value={profileForm.image}
+                onChange={handleProfileChange}
+                className={inputClass}
+                placeholder="https://example.com/work-photo.jpg"
+              />
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-gray-300 text-sm font-medium mb-2">
+                <label className="block text-[#666666] text-sm font-medium mb-2">
                   Base Price
                 </label>
                 <input
@@ -215,8 +231,8 @@ export default function WorkerDashboard() {
               </div>
 
               <div>
-                <label className="block text-gray-300 text-sm font-medium mb-2">
-                  Experience
+                <label className="block text-[#666666] text-sm font-medium mb-2">
+                  Experience (In Years)
                 </label>
                 <input
                   type="number"
@@ -230,7 +246,7 @@ export default function WorkerDashboard() {
             </div>
 
             <div>
-              <label className="block text-gray-300 text-sm font-medium mb-2">
+              <label className="block text-[#666666] text-sm font-medium mb-2">
                 Location
               </label>
               <input
@@ -244,7 +260,7 @@ export default function WorkerDashboard() {
             </div>
 
             <div>
-              <label className="block text-gray-300 text-sm font-medium mb-2">
+              <label className="block text-[#666666] text-sm font-medium mb-2">
                 Description
               </label>
               <textarea
@@ -259,7 +275,7 @@ export default function WorkerDashboard() {
             <button
               type="submit"
               disabled={profileSaving || services.length === 0}
-              className="w-full bg-[#7A3FE0] hover:bg-[#9D5BFF] disabled:opacity-50 text-white px-5 py-3 rounded-lg font-semibold transition"
+              className="w-full bg-[#0A66C2] hover:bg-[#004182] disabled:opacity-50 text-white px-5 py-3 rounded-lg font-semibold transition"
             >
               {profileSaving ? "Saving..." : "Save Worker Profile"}
             </button>
@@ -270,36 +286,36 @@ export default function WorkerDashboard() {
   }
 
   if (error) {
-    return <div className="text-center mt-20 text-red-400 text-lg">{error}</div>;
+    return <div className="text-center mt-20 text-[#B24020] text-lg">{error}</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1e293b] to-[#0f172a] px-6 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-[#E9E5DF] to-[#EAF4FD] px-6 py-12">
       <div className="max-w-6xl mx-auto">
         <div className="mb-10">
-          <h1 className="text-4xl font-bold text-white">Worker Dashboard</h1>
-          <p className="text-gray-400 mt-2">
+          <h1 className="text-4xl font-bold text-[#191919]">Worker Dashboard</h1>
+          <p className="text-[#666666] mt-2">
             Manage and track your service bookings
           </p>
         </div>
 
         {bookings.length === 0 ? (
-          <div className="bg-[#1e293b] border border-gray-700 rounded-xl p-12 text-center">
-            <p className="text-gray-400 text-lg">No bookings available yet</p>
+          <div className="bg-[#FFFFFF] border border-[#D0D7DE] rounded-xl p-12 text-center">
+            <p className="text-[#666666] text-lg">No bookings available yet</p>
           </div>
         ) : (
           <div className="grid gap-6">
             {bookings.map((booking) => (
               <div
                 key={booking.id}
-                className="bg-[#1e293b] border border-gray-700 rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300"
+                className="bg-[#FFFFFF] border border-[#D0D7DE] rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300"
               >
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                   <div>
-                    <h2 className="text-lg font-semibold text-white">
+                    <h2 className="text-lg font-semibold text-[#191919]">
                       {booking.user_name}
                     </h2>
-                    <p className="text-gray-400 text-sm mt-1">
+                    <p className="text-[#666666] text-sm mt-1">
                       {booking.location || "Location not provided"}
                     </p>
 
@@ -316,14 +332,14 @@ export default function WorkerDashboard() {
                         <button
                           disabled={updatingId === booking.id}
                           onClick={() => updateStatus(booking.id, "accepted")}
-                          className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg font-semibold transition"
+                          className="bg-[#057642] hover:bg-[#004B1C] disabled:opacity-50 text-white px-4 py-2 rounded-lg font-semibold transition"
                         >
                           Accept
                         </button>
                         <button
                           disabled={updatingId === booking.id}
                           onClick={() => updateStatus(booking.id, "rejected")}
-                          className="bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg font-semibold transition"
+                          className="bg-[#B24020] hover:bg-[#8F2C14] disabled:opacity-50 text-white px-4 py-2 rounded-lg font-semibold transition"
                         >
                           Reject
                         </button>
@@ -334,20 +350,20 @@ export default function WorkerDashboard() {
                       <button
                         disabled={updatingId === booking.id}
                         onClick={() => updateStatus(booking.id, "completed")}
-                        className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg font-semibold transition"
+                        className="bg-[#0A66C2] hover:bg-[#004182] disabled:opacity-50 text-white px-4 py-2 rounded-lg font-semibold transition"
                       >
                         Mark as Completed
                       </button>
                     )}
 
                     {booking.status === "completed" && (
-                      <span className="text-blue-400 font-semibold">
+                      <span className="text-[#0A66C2] font-semibold">
                         Job Completed
                       </span>
                     )}
 
                     {booking.status === "rejected" && (
-                      <span className="text-red-400 font-semibold">
+                      <span className="text-[#B24020] font-semibold">
                         Request Rejected
                       </span>
                     )}
